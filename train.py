@@ -26,13 +26,11 @@ def parse_arguments(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
     parser.add_argument('--epochs', type=int, default=5, help='Number of epochs')
-    parser.add_argument('--optimizer', type=str, default='sgd', help='Optimizer types: sgd, adam')
+    parser.add_argument('--optimizer', type=str, default='sgd', help='Optimizer types: {sgd, adam}')
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
+    parser.add_argument('--num_tasks', type=int, default=5, help='Number of tasks to split the dataset')
     # parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
     # parser.add_argument('--weight_decay', type=float, default=0.0005, help='Weight decay')
-
-
-    # parser.add_argument('--data_path', type=str, default=DATA_PATH, help='Path to dataset')
     args = parser.parse_args(argv)
     return args
 
@@ -75,13 +73,6 @@ def train(args):
     resnet = InceptionResnetV1(classify=True, num_classes=num_classes)
     resnet = weights_init(resnet).to(device)
 
-    # Define optimizer, scheduler
-    if args.optimizer == 'sgd':
-        optimizer = optim.SGD(resnet.parameters(), lr=lr_init, momentum=0.9, weight_decay=0.0005)
-    elif args.optimizer == 'adam':
-        optimizer = optim.Adam(resnet.parameters(), lr=lr_init)
-    scheduler = MultiStepLR(optimizer, [5, 10])
-
     # Define dataset, and dataloader
     trans = transforms.Compose([
         np.float32,
@@ -94,37 +85,52 @@ def train(args):
     targets = np.array(dataset.targets)
     
     # Some classes have only one sample, so we need to put them into training set
-    # and validation set separately
-    train_inds = []
-    val_inds = []
-    for i in range(num_classes):
-        inds = img_inds[targets==i]
-        if len(inds) == 1:
-            train_inds.append(inds[0])
-        elif len(inds) == 2:
-            train_inds.extend(inds[:-1])
-            val_inds.append(inds[-1])
-        else:
-            train_inds.extend(inds[:-2])
-            val_inds.extend(inds[-2:])
+    # and validation set separately. We also split to 5 tasks, each task has
+    # disjoint classes.
+    num_tasks = args.num_tasks
+    num_classes_per_task = num_classes // num_tasks
 
-    train_inds = np.array(train_inds)
-    val_inds = np.array(val_inds)
-    # Shuffle the indices
-    np.random.shuffle(train_inds)
-    np.random.shuffle(val_inds)
+    train_loaders = dict()
+    val_loaders = dict()
 
-    train_loader = DataLoader(
-        dataset,
-        batch_size=batch_size,
-        sampler=SubsetRandomSampler(train_inds)
-    )
+    classes = np.arange(num_classes)
+    np.random.shuffle(classes)
 
-    val_loader = DataLoader(
-        dataset,
-        batch_size=batch_size,
-        sampler=SubsetRandomSampler(val_inds)
-    )
+    for task in range(num_tasks):
+        # Get classes for this task
+        task_classes = classes[task * num_classes_per_task: (task + 1) * num_classes_per_task]
+        train_inds = []
+        val_inds = []
+
+        for i in task_classes:
+            inds = img_inds[targets == i]
+            if len(inds) == 1:
+                train_inds.append(inds[0])
+            elif len(inds) == 2:
+                train_inds.extend(inds[:-1])
+                val_inds.append(inds[-1])
+            else:
+                train_inds.extend(inds[:-2])
+                val_inds.extend(inds[-2:])
+
+        train_inds = np.array(train_inds)
+        val_inds = np.array(val_inds)
+        np.random.shuffle(train_inds)
+        np.random.shuffle(val_inds)
+
+        train_loader = DataLoader(
+            dataset,
+            batch_size=batch_size,
+            sampler=SubsetRandomSampler(train_inds)
+        )
+        val_loader = DataLoader(
+            dataset,
+            batch_size=batch_size,
+            sampler=SubsetRandomSampler(val_inds)
+        )
+        train_loaders[task] = train_loader
+        val_loaders[task] = val_loader
+
 
     # Define loss function and evaluation metrics
     loss_fn = nn.CrossEntropyLoss()
@@ -133,39 +139,52 @@ def train(args):
         'fps': BatchTimer()
     }
 
-    # Train the model
-    writer = SummaryWriter(LOG_DIR + 'exp1', comment=f'{args.optimizer}_lr{lr_init}_bs{batch_size}_epochs{epochs}_momentum0.9_wd0.0005')
-    writer.iteration, writer.interval = 0, 10
-
-    print('\n\nInitial')
-    print('=' * 10)
-    resnet.eval()
-    pass_epoch(
-        resnet, loss_fn, val_loader,
-        batch_metrics=metrics, show_running=True, device=device,
-        writer=writer
-    )
-
-    for epoch in range(epochs):
-        print('\nEpoch {}/{}'.format(epoch + 1, epochs))
+    # Train
+    for task in range(num_tasks):
         print('=' * 10)
+        print(f'Task {task} starts')
 
-        resnet.train()
-        pass_epoch(
-            resnet, loss_fn, train_loader, optimizer, scheduler,
-            batch_metrics=metrics, show_running=True, device=device,
-            writer=writer
-        )
+        # Define optimizer, scheduler
+        if args.optimizer == 'sgd':
+            optimizer = optim.SGD(resnet.parameters(), lr=lr_init, momentum=0.9, weight_decay=0.0005)
+        elif args.optimizer == 'adam':
+            optimizer = optim.Adam(resnet.parameters(), lr=lr_init)
+        scheduler = MultiStepLR(optimizer, [5, 10])
 
+        writer = SummaryWriter(LOG_DIR + 'exp1', comment=f'task{task}_{args.optimizer}_lr{lr_init}_bs{batch_size}_epochs{epochs}_momentum0.9_wd0.0005')
+        writer.iteration, writer.interval = 0, 10
+
+        print('Initial')
+        print('=' * 10)
         resnet.eval()
         pass_epoch(
-            resnet, loss_fn, val_loader,
+            resnet, loss_fn, val_loaders[task],
             batch_metrics=metrics, show_running=True, device=device,
             writer=writer
         )
 
-    writer.close()
+        for epoch in range(epochs):
+            print('\nEpoch {}/{}'.format(epoch + 1, epochs))
+            print('=' * 10)
 
+            resnet.train()
+            pass_epoch(
+                resnet, loss_fn, train_loaders[task], optimizer, scheduler,
+                batch_metrics=metrics, show_running=True, device=device,
+                writer=writer
+            )
+
+            resnet.eval()
+            pass_epoch(
+                resnet, loss_fn, val_loaders[task],
+                batch_metrics=metrics, show_running=True, device=device,
+                writer=writer
+            )
+
+        writer.close()
+        print(f'Task {task + 1} / {num_tasks} finished.')
+        print('=' * 20)
+        break
 
 
 if __name__ == '__main__':
