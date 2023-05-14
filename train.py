@@ -74,63 +74,67 @@ def train(args):
     resnet = InceptionResnetV1(classify=True, num_classes=num_classes)
     resnet = weights_init(resnet).to(device)
 
-    # Define dataset, and dataloader
-    trans = transforms.Compose([
-        np.float32,
-        transforms.ToTensor(),
-        fixed_image_standardization
-    ])
+    # # Define dataset, and dataloader
+    # trans = transforms.Compose([
+    #     np.float32,
+    #     transforms.ToTensor(),
+    #     fixed_image_standardization
+    # ])
 
-    dataset = datasets.ImageFolder(casia_cropped_path, transform=trans)
-    img_inds = np.arange(len(dataset))
-    targets = np.array(dataset.targets)
+    # dataset = datasets.ImageFolder(casia_cropped_path, transform=trans)
+    # img_inds = np.arange(len(dataset))
+    # targets = np.array(dataset.targets)
     
-    # Some classes have only one sample, so we need to put them into training set
-    # and validation set separately. We also split to 5 tasks, each task has
-    # disjoint classes.
+    # # Some classes have only one sample, so we need to put them into training set
+    # # and validation set separately. We also split to 5 tasks, each task has
+    # # disjoint classes.
     num_tasks = args.num_tasks
-    num_classes_per_task = num_classes // num_tasks
-    classes = np.arange(num_classes)
-    np.random.shuffle(classes)
+    # num_classes_per_task = num_classes // num_tasks
+    # classes = np.arange(num_classes)
+    # np.random.shuffle(classes)
 
-    train_loaders = dict()
-    val_loaders = dict()
+    # train_loaders = dict()
+    # val_loaders = dict()
 
-    for task in range(num_tasks):
-        # Get classes for this task
-        task_classes = classes[task * num_classes_per_task: (task + 1) * num_classes_per_task]
-        train_inds = []
-        val_inds = []
+    # for task in range(num_tasks):
+    #     # Get classes for this task
+    #     task_classes = classes[task * num_classes_per_task: (task + 1) * num_classes_per_task]
+    #     train_inds = []
+    #     val_inds = []
 
-        for i in task_classes:
-            inds = img_inds[targets == i]
-            if len(inds) == 1:
-                train_inds.append(inds[0])
-            elif len(inds) >= 4:
-                train_inds.extend(inds[:-2])
-                val_inds.append(inds[-2])
-            else:
-                train_inds.extend(inds[:-1])
-                val_inds.extend(inds[-1:])
+    #     for i in task_classes:
+    #         inds = img_inds[targets == i]
+    #         if len(inds) == 1:
+    #             train_inds.append(inds[0])
+    #         elif len(inds) >= 4:
+    #             train_inds.extend(inds[:-2])
+    #             val_inds.append(inds[-2])
+    #         else:
+    #             train_inds.extend(inds[:-1])
+    #             val_inds.extend(inds[-1:])
 
-        train_inds = np.array(train_inds)
-        val_inds = np.array(val_inds)
-        np.random.shuffle(train_inds)
-        np.random.shuffle(val_inds)
+    #     train_inds = np.array(train_inds)
+    #     val_inds = np.array(val_inds)
+    #     np.random.shuffle(train_inds)
+    #     np.random.shuffle(val_inds)
 
-        train_loader = DataLoader(
-            dataset,
-            batch_size=batch_size,
-            sampler=SubsetRandomSampler(train_inds)
-        )
-        val_loader = DataLoader(
-            dataset,
-            batch_size=batch_size,
-            sampler=SubsetRandomSampler(val_inds)
-        )
-        train_loaders[task] = train_loader
-        val_loaders[task] = val_loader
+    #     train_loader = DataLoader(
+    #         dataset,
+    #         batch_size=batch_size,
+    #         sampler=SubsetRandomSampler(train_inds)
+    #     )
+    #     val_loader = DataLoader(
+    #         dataset,
+    #         batch_size=batch_size,
+    #         sampler=SubsetRandomSampler(val_inds)
+    #     )
+    #     train_loaders[task] = train_loader
+    #     val_loaders[task] = val_loader
 
+    # # Save dataset
+    # for task in range(num_tasks):
+    #     torch.save(train_loaders[task], f'./data/train_loader_{task}.pth')
+    #     torch.save(val_loaders[task], f'./data/val_loader_{task}.pth')
 
     # Define loss function and evaluation metrics
     loss_fn = nn.CrossEntropyLoss()
@@ -141,6 +145,8 @@ def train(args):
 
     # Train
     for task in range(num_tasks):
+        train_loader = torch.load(f'./data/train_loader_{task}.pth')
+        val_loader = torch.load(f'./data/val_loader_{task}.pth')
         print('=' * 10)
         print(f'Task {task} starts')
 
@@ -158,7 +164,7 @@ def train(args):
         print('=' * 10)
         resnet.eval()
         pass_epoch(
-            resnet, loss_fn, val_loaders[task],
+            resnet, loss_fn, val_loader,
             batch_metrics=metrics, show_running=True, device=device,
             writer=writer
         )
@@ -169,14 +175,14 @@ def train(args):
 
             resnet.train()
             pass_epoch(
-                resnet, loss_fn, train_loaders[task], optimizer, scheduler,
+                resnet, loss_fn, train_loader, optimizer, scheduler,
                 batch_metrics=metrics, show_running=True, device=device,
                 writer=writer
             )
 
             resnet.eval()
             pass_epoch(
-                resnet, loss_fn, val_loaders[task],
+                resnet, loss_fn, val_loader,
                 batch_metrics=metrics, show_running=True, device=device,
                 writer=writer
             )
