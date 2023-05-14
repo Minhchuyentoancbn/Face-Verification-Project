@@ -19,8 +19,8 @@ from facenet_pytorch import MTCNN, InceptionResnetV1, fixed_image_standardizatio
 
 
 device = get_device()
-casia_cropped_path = os.path.join(DATA_PATH, 'CASIA-WebFace-cropped/')
-# casia_cropped_path = '/kaggle/input/casia-webface-cropped-with-mtcnn/CASIA-WebFace-cropped'
+# casia_cropped_path = os.path.join(DATA_PATH, 'CASIA-WebFace-cropped/')
+casia_cropped_path = '/kaggle/input/casia-webface-cropped-with-mtcnn/CASIA-WebFace-cropped'
 
 
 def parse_arguments(argv):
