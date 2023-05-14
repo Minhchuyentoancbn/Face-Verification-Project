@@ -5,4 +5,6 @@ SEED = 42
 
 DATA_PATH = 'data/'
 CASIA_PATH = 'data/CASIA-WebFace/'
+LFW_PATH = 'data/lfw/lfw_cropped'
+LFW_PAIRS_PATH = 'data/lfw/pairs.txt'
 LOG_DIR = 'runs/'

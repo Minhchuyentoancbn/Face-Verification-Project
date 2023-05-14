@@ -4,6 +4,7 @@ import os
 import numpy as np
 
 from models import get_mtcnn
+from evaluate import evaluate
 from config import *
 from utils import get_device, seed_everything, collate_pil, weights_init, accuracy, BatchTimer, pass_epoch
 
@@ -18,8 +19,8 @@ from facenet_pytorch import MTCNN, InceptionResnetV1, fixed_image_standardizatio
 
 
 device = get_device()
-# casia_cropped_path = os.path.join(DATA_PATH, 'CASIA-WebFace-cropped/')
-casia_cropped_path = '/kaggle/input/casia-webface-cropped-with-mtcnn/CASIA-WebFace-cropped'
+casia_cropped_path = os.path.join(DATA_PATH, 'CASIA-WebFace-cropped/')
+# casia_cropped_path = '/kaggle/input/casia-webface-cropped-with-mtcnn/CASIA-WebFace-cropped'
 
 
 def parse_arguments(argv):
@@ -28,7 +29,7 @@ def parse_arguments(argv):
     parser.add_argument('--epochs', type=int, default=5, help='Number of epochs')
     parser.add_argument('--optimizer', type=str, default='sgd', help='Optimizer types: {sgd, adam}')
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
-    parser.add_argument('--num_tasks', type=int, default=5, help='Number of tasks to split the dataset')
+    parser.add_argument('--num_tasks', type=int, default=10, help='Number of tasks to split the dataset')
     # parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
     # parser.add_argument('--weight_decay', type=float, default=0.0005, help='Weight decay')
     args = parser.parse_args(argv)
@@ -89,12 +90,11 @@ def train(args):
     # disjoint classes.
     num_tasks = args.num_tasks
     num_classes_per_task = num_classes // num_tasks
+    classes = np.arange(num_classes)
+    np.random.shuffle(classes)
 
     train_loaders = dict()
     val_loaders = dict()
-
-    classes = np.arange(num_classes)
-    np.random.shuffle(classes)
 
     for task in range(num_tasks):
         # Get classes for this task
@@ -106,12 +106,12 @@ def train(args):
             inds = img_inds[targets == i]
             if len(inds) == 1:
                 train_inds.append(inds[0])
-            elif len(inds) == 2:
-                train_inds.extend(inds[:-1])
-                val_inds.append(inds[-1])
-            else:
+            elif len(inds) >= 4:
                 train_inds.extend(inds[:-2])
-                val_inds.extend(inds[-2:])
+                val_inds.append(inds[-2])
+            else:
+                train_inds.extend(inds[:-1])
+                val_inds.extend(inds[-1:])
 
         train_inds = np.array(train_inds)
         val_inds = np.array(val_inds)
@@ -182,9 +182,16 @@ def train(args):
             )
 
         writer.close()
+
+        print('Validate on LFW')
+        lfw_accuracy = evaluate(resnet)
+
         print(f'Task {task + 1} / {num_tasks} finished.')
         print('=' * 20)
+
         break
+
+    del resnet
 
 
 if __name__ == '__main__':
@@ -198,3 +205,5 @@ if __name__ == '__main__':
 
     # Train the model
     train(args)
+
+    torch.cuda.empty_cache()
