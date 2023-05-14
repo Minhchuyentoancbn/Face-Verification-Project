@@ -234,6 +234,9 @@ def evaluate_lfw(model: nn.Module,
 
     tpr, fpr, accuracy, val, val_std, far, fp, fn = evaluate(embeddings, issame_list)
     print(f'Mean Accuracy: {np.mean(accuracy)}')
+    print(f'VAL: {val}')
+    print(f'FAR: {far}')
+
 
     model.classify = classify
 
