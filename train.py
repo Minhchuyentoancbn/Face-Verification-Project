@@ -63,7 +63,7 @@ def preprocess_data(args):
 
 
 def train(args):
-    empty_folder('runs/exp1/')
+    # empty_folder('runs/exp1/')
 
     # Define hyperparameters
     batch_size = args.batch_size
