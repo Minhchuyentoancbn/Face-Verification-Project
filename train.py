@@ -4,7 +4,7 @@ import os
 import numpy as np
 
 from models import get_mtcnn
-from evaluate import evaluate
+from evaluate import evaluate_lfw
 from config import *
 from utils import get_device, seed_everything, collate_pil, weights_init, accuracy, BatchTimer, pass_epoch
 
@@ -184,7 +184,7 @@ def train(args):
         writer.close()
 
         print('Validate on LFW')
-        lfw_accuracy = evaluate(resnet)
+        lfw_accuracy = evaluate_lfw(resnet)
 
         print(f'Task {task + 1} / {num_tasks} finished.')
         print('=' * 20)
