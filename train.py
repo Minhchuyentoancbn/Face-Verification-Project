@@ -193,7 +193,7 @@ def train(args):
             pass_epoch(
                 resnet, loss_fn, val_loader,
                 batch_metrics=metrics, show_running=True, device=device,
-                writer=writer
+                writer=writer, scheduler=scheduler
             )
 
         writer.close()
