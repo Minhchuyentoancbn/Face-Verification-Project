@@ -172,10 +172,10 @@ if __name__ == '__main__':
     seed_everything(SEED)
     args = parse_arguments(sys.argv[1:])
 
-    # Create data folders
-    if not os.path.exists(casia_cropped_path):
-        os.makedirs(casia_cropped_path)
-        preprocess_data(args)
+    # # Create data folders
+    # if not os.path.exists(casia_cropped_path):
+    #     os.makedirs(casia_cropped_path)
+    #     preprocess_data(args)
 
     # Train the model
     train(args)
