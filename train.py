@@ -6,16 +6,16 @@ import numpy as np
 from models import get_mtcnn
 from evaluate import evaluate_lfw
 from config import *
-from utils import get_device, seed_everything, collate_pil, weights_init, accuracy, BatchTimer, pass_epoch
+from utils import get_device, seed_everything, collate_pil, weights_init, accuracy, BatchTimer, pass_epoch, empty_folder
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, SubsetRandomSampler
 from torch.utils.tensorboard import SummaryWriter
-from torch.optim.lr_scheduler import MultiStepLR, CyclicLR, OneCycleLR
-from torchvision import models, datasets, transforms
-from facenet_pytorch import MTCNN, InceptionResnetV1, fixed_image_standardization
+from torch.optim.lr_scheduler import MultiStepLR, LambdaLR
+from torchvision import datasets, transforms
+from facenet_pytorch import InceptionResnetV1, fixed_image_standardization
 
 
 device = get_device()
@@ -29,9 +29,9 @@ def parse_arguments(argv):
     parser.add_argument('--epochs', type=int, default=5, help='Number of epochs')
     parser.add_argument('--optimizer', type=str, default='sgd', help='Optimizer types: {sgd, adam}')
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
-    parser.add_argument('--num_tasks', type=int, default=10, help='Number of tasks to split the dataset')
-    # parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
-    # parser.add_argument('--weight_decay', type=float, default=0.0005, help='Weight decay')
+    parser.add_argument('--num_tasks', type=int, default=20, help='Number of tasks to split the dataset')
+    parser.add_argument('--momentum', type=float, default=0.0, help='Momentum')
+    parser.add_argument('--weight_decay', type=float, default=0.0, help='Weight decay')
     args = parser.parse_args(argv)
     return args
 
@@ -63,6 +63,8 @@ def preprocess_data(args):
 
 
 def train(args):
+    empty_folder('runs/exp1/')
+
     # Define hyperparameters
     batch_size = args.batch_size
     epochs = args.epochs
@@ -152,12 +154,17 @@ def train(args):
 
         # Define optimizer, scheduler
         if args.optimizer == 'sgd':
-            optimizer = optim.SGD(resnet.parameters(), lr=lr_init, momentum=0.9, weight_decay=0.0005)
+            optimizer = optim.SGD(resnet.parameters(), lr=lr_init, momentum=args.momentum, weight_decay=args.weight_decay)
         elif args.optimizer == 'adam':
             optimizer = optim.Adam(resnet.parameters(), lr=lr_init)
-        scheduler = MultiStepLR(optimizer, [5, 10])
 
-        writer = SummaryWriter(LOG_DIR + 'exp1', comment=f'task{task}_{args.optimizer}_lr{lr_init}_bs{batch_size}_epochs{epochs}_momentum0.9_wd0.0005')
+        lr_end = 10
+        num_steps = 1000
+        lr_update = lambda step: lr_init + (lr_end - lr_init) * step / num_steps
+        scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_update)
+        # scheduler = MultiStepLR(optimizer, [5, 10])
+
+        writer = SummaryWriter(LOG_DIR + 'exp1', comment=f'task{task}_{args.optimizer}_lr{lr_init}_bs{batch_size}_epochs{epochs}_momentum{args.momentum}_weight_decay{args.weight_decay}')
         writer.iteration, writer.interval = 0, 10
 
         print('Initial')

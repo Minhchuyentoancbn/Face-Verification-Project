@@ -229,7 +229,7 @@ def pass_epoch(
                 writer.add_scalars('loss', {mode: loss_batch.detach().cpu()}, writer.iteration)
                 for metric_name, metric_batch in metrics_batch.items():
                     writer.add_scalars(metric_name, {mode: metric_batch}, writer.iteration)
-                writer.add_scalars('lr', {mode: optimizer.param_groups[0]['lr']}, writer.iteration)
+                writer.add_scalars('lr', {mode: scheduler.get_lr()[0]}, writer.iteration)
             writer.iteration += 1
         
         loss_batch = loss_batch.detach().cpu()
@@ -239,8 +239,8 @@ def pass_epoch(
         else:
             logger(loss_batch, metrics_batch, i_batch)
     
-    if model.training and scheduler is not None:
-        scheduler.step()
+        if model.training and scheduler is not None:
+            scheduler.step()
 
     loss = loss / (i_batch + 1)
     metrics = {k: v / (i_batch + 1) for k, v in metrics.items()}
@@ -249,7 +249,7 @@ def pass_epoch(
         writer.add_scalars('loss', {mode: loss.detach()}, writer.iteration)
         for metric_name, metric in metrics.items():
             writer.add_scalars(metric_name, {mode: metric})
-        writer.add_scalars('lr', {mode: optimizer.param_groups[0]['lr']}, writer.iteration)
+        writer.add_scalars('lr', {mode: scheduler.get_lr()[0]}, writer.iteration)
         
     return loss, metrics
 
