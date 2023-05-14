@@ -229,6 +229,7 @@ def pass_epoch(
                 writer.add_scalars('loss', {mode: loss_batch.detach().cpu()}, writer.iteration)
                 for metric_name, metric_batch in metrics_batch.items():
                     writer.add_scalars(metric_name, {mode: metric_batch}, writer.iteration)
+                writer.add_scalars('lr', {mode: optimizer.param_groups[0]['lr']}, writer.iteration)
             writer.iteration += 1
         
         loss_batch = loss_batch.detach().cpu()
@@ -248,7 +249,8 @@ def pass_epoch(
         writer.add_scalars('loss', {mode: loss.detach()}, writer.iteration)
         for metric_name, metric in metrics.items():
             writer.add_scalars(metric_name, {mode: metric})
-
+        writer.add_scalars('lr', {mode: optimizer.param_groups[0]['lr']}, writer.iteration)
+        
     return loss, metrics
 
 
