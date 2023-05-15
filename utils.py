@@ -213,9 +213,14 @@ def pass_epoch(
         y = y.to(device)
         y_pred = model(x)
         loss_batch = loss_fn(y_pred, y)
-        loss += loss_batch.item()
+
+        if model.training:
+            optimizer.zero_grad()
+            loss_batch.backward()
+            optimizer.step()
 
         loss_batch = loss_batch.detach().cpu()
+        loss += loss_batch.item()
 
         metrics_batch = {}
         for metric_name, metric_fn in batch_metrics.items():
@@ -231,13 +236,6 @@ def pass_epoch(
             print(f'Lr: {optimizer.param_groups[0]["lr"]:0.6f}')
 
     loss = loss / (i_batch + 1)
-
-    if model.training:
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
-    loss = loss.detach().cpu()
     
     if model.training and scheduler is not None:
         scheduler.step()
