@@ -4,6 +4,7 @@ import numpy as np
 
 import torch
 import torch.nn as nn
+from torchvision.transforms.functional import adjust_brightness, adjust_contrast, hflip, gaussian_blur
 
 
 def empty_folder(folder_path: str) -> None:
@@ -205,9 +206,24 @@ def pass_epoch(
     for i_batch, (x, y) in enumerate(loader):
         # Flip images horizontally with 50% probability of shape [bs, 3, 224, 224]
         if mode == 'Train':
+            # Augment images only during training
             bs, _, _, _ = x.shape
-            flip = torch.rand(bs) > 0.5
-            x[flip] = torch.flip(x[flip], dims=[3])
+
+            # Flip images horizontally with 50% probability
+            probability = torch.rand(bs)
+            idx = torch.arange(bs)[probability > 0.5]
+            x[idx] = hflip(x[idx])
+
+            # Randomly adjust brightness, contrast
+            probability = torch.rand(bs)
+            idx = torch.arange(bs)[probability > 0.5]
+            p = np.random.choice([0.5, 0.75, 1, 1.25, 1.5])
+            x[idx] = adjust_brightness(x[idx], p)
+
+            probability = torch.rand(bs)
+            idx = torch.arange(bs)[probability > 0.5]
+            p = np.random.choice([0.5, 0.75, 1, 1.25, 1.5])
+            x[idx] = adjust_contrast(x[idx], p)
 
         x = x.to(device)
         y = y.to(device)

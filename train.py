@@ -6,7 +6,7 @@ import numpy as np
 from models import get_mtcnn
 from evaluate import evaluate_lfw
 from config import *
-from utils import get_device, seed_everything, collate_pil, weights_init, accuracy, BatchTimer, pass_epoch, empty_folder
+from utils import get_device, seed_everything, collate_pil, weights_init, accuracy, BatchTimer, pass_epoch
 
 import torch
 import torch.nn as nn
