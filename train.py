@@ -205,10 +205,10 @@ def train(args):
         print(f'Task {task + 1} / {num_tasks} finished.')
         print('=' * 20)
 
+        # Save model
+        torch.save(resnet.state_dict(), f'./trained_models/resnet_{task}.pth')
         break
-    # Save model
 
-    del resnet
 
 
 if __name__ == '__main__':
