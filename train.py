@@ -167,8 +167,8 @@ def train(args):
             optimizer = optim.Adam(resnet.parameters(), lr=lr_init)
 
         def lambda_rule(step):
-            if step < 10:
-                return (step + 1) / 10
+            if step < 20:
+                return (step + 1) / 20
             elif step < 35:
                 return 1
             elif step < epochs * 70:
