@@ -215,6 +215,8 @@ def pass_epoch(
         loss_batch = loss_fn(y_pred, y)
         loss += loss_batch
 
+        loss_batch = loss_batch.detach().cpu()
+        
         metrics_batch = {}
         for metric_name, metric_fn in batch_metrics.items():
             metrics_batch[metric_name] = metric_fn(y_pred, y).detach().cpu()
