@@ -159,14 +159,13 @@ def train(args):
         elif args.optimizer == 'adam':
             optimizer = optim.Adam(resnet.parameters(), lr=lr_init)
 
-        lr_end = 20
-        num_steps = 0.48
-        lr_update = lambda step: lr_init + (lr_end - lr_init) * step / num_steps
+        lr_update = lambda step: 0.1 * step
         scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_update)
         # scheduler = MultiStepLR(optimizer, [5, 10])
 
         writer = SummaryWriter(LOG_DIR + 'exp1', comment=f'task{task}_{args.optimizer}_lr{lr_init}_bs{batch_size}_epochs{epochs}_momentum{args.momentum}_weight_decay{args.weight_decay}')
-        writer.iteration, writer.interval = 0, 10
+        writer.iteration = 0
+        # writer.interval = 10
 
         print('Initial')
         print('=' * 10)

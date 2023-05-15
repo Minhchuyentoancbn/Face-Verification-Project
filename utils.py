@@ -213,28 +213,13 @@ def pass_epoch(
         y = y.to(device)
         y_pred = model(x)
         loss_batch = loss_fn(y_pred, y)
-
-        if model.training:
-            loss_batch.backward()
-            optimizer.step()
-            optimizer.zero_grad()
+        loss += loss_batch
 
         metrics_batch = {}
         for metric_name, metric_fn in batch_metrics.items():
             metrics_batch[metric_name] = metric_fn(y_pred, y).detach().cpu()
             metrics[metric_name] = metrics.get(metric_name, 0) + metrics_batch[metric_name]
-            
-        if writer is not None and model.training:
-            if writer.iteration % writer.interval == 0:
-                writer.add_scalars('loss', {mode: loss_batch.detach().cpu()}, writer.iteration)
-                for metric_name, metric_batch in metrics_batch.items():
-                    writer.add_scalars(metric_name, {mode: metric_batch}, writer.iteration)
-                if optimizer is not None:
-                    writer.add_scalars('lr', {mode: optimizer.param_groups[0]['lr']}, writer.iteration)
-            writer.iteration += 1
-        
-        loss_batch = loss_batch.detach().cpu()
-        loss += loss_batch
+
         if show_running:
             logger(loss, metrics, i_batch)
         else:
@@ -242,20 +227,29 @@ def pass_epoch(
 
         if optimizer is not None:
             print(f'Lr: {optimizer.param_groups[0]["lr"]:0.6f}')
-    
-        if model.training and scheduler is not None:
-            scheduler.step()
 
     loss = loss / (i_batch + 1)
+
+    if model.training:
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+    loss = loss.detach().cpu()
+    
+    if model.training and scheduler is not None:
+        scheduler.step()
+
     metrics = {k: v / (i_batch + 1) for k, v in metrics.items()}
             
     if writer is not None and not model.training:
-        writer.add_scalars('loss', {mode: loss.detach()}, writer.iteration)
+        writer.add_scalars('loss', {mode: loss}, writer.iteration)
         for metric_name, metric in metrics.items():
             writer.add_scalars(metric_name, {mode: metric})
         if optimizer is not None:
             writer.add_scalars('lr', {mode: optimizer.param_groups[0]['lr']}, writer.iteration)
-        
+        writer.iteration += 1
+
     return loss, metrics
 
 
