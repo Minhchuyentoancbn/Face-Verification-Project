@@ -217,12 +217,8 @@ def pass_epoch(
             # Randomly adjust brightness, contrast
             probability = torch.rand(bs)
             idx = torch.arange(bs)[probability > 0.5]
-            p = np.random.choice([0.5, 0.75, 1, 1.25, 1.5])
+            p = np.random.choice([0.75, 1.25])
             x[idx] = adjust_brightness(x[idx], p)
-
-            probability = torch.rand(bs)
-            idx = torch.arange(bs)[probability > 0.5]
-            p = np.random.choice([0.5, 0.75, 1, 1.25, 1.5])
             x[idx] = adjust_contrast(x[idx], p)
 
         x = x.to(device)
