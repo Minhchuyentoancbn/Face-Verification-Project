@@ -211,7 +211,7 @@ def train(args):
                     writer=writer, optimizer=optimizer
                 )
 
-            if epoch == 9:
+            if (epoch + 1) % 30 == 0:
                 print('Validate on LFW')
                 lfw_accuracy = evaluate_lfw(resnet)
 
