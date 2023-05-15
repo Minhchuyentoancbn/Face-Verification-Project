@@ -240,7 +240,8 @@ def pass_epoch(
         else:
             logger(loss_batch, metrics_batch, i_batch)
 
-        print(f'Lr: {scheduler.get_last_lr()[0]:.6f}')
+        if scheduler is not None:
+            print(f'Lr: {scheduler.get_last_lr()[0]:.6f}')
     
         if model.training and scheduler is not None:
             scheduler.step()
