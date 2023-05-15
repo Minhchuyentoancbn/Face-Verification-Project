@@ -262,7 +262,7 @@ class InceptionResnetV1(nn.Module):
             load_weights(self, pretrained)
 
         if self.classify and self.num_classes is not None:
-            self.logits = nn.Linear(512, self.num_classes)
+            self.logits = nn.Linear(512, self.num_classes, bias=False)
 
         self.device = torch.device('cpu')
         if device is not None:
