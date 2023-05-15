@@ -168,7 +168,7 @@ def train(args):
             if step < epochs // 12:
                 return (step + 1) / 10
             elif step < epochs // 3:
-                return 10
+                return 1
             elif step < epochs * 7 / 12:
                 return 0.1
             else:
