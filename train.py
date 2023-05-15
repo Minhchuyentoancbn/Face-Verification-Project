@@ -159,7 +159,7 @@ def train(args):
         elif args.optimizer == 'adam':
             optimizer = optim.Adam(resnet.parameters(), lr=lr_init)
 
-        lr_update = lambda step: 0.1 * (step + 1)
+        lr_update = lambda step: 100 * (step + 1)
         scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_update)
         # scheduler = MultiStepLR(optimizer, [5, 10])
 
@@ -170,11 +170,12 @@ def train(args):
         print('Initial')
         print('=' * 10)
         resnet.eval()
-        pass_epoch(
-            resnet, loss_fn, val_loader,
-            batch_metrics=metrics, show_running=True, device=device,
-            writer=writer
-        )
+        with torch.no_grad():
+            pass_epoch(
+                resnet, loss_fn, val_loader,
+                batch_metrics=metrics, show_running=True, device=device,
+                writer=writer
+            )
 
         for epoch in range(epochs):
             print('\nEpoch {}/{}'.format(epoch + 1, epochs))
@@ -188,11 +189,12 @@ def train(args):
             )
 
             resnet.eval()
-            pass_epoch(
-                resnet, loss_fn, val_loader,
-                batch_metrics=metrics, show_running=True, device=device,
-                writer=writer, optimizer=optimizer
-            )
+            with torch.no_grad():
+                pass_epoch(
+                    resnet, loss_fn, val_loader,
+                    batch_metrics=metrics, show_running=True, device=device,
+                    writer=writer, optimizer=optimizer
+                )
 
         writer.close()
         print('Validate on LFW')

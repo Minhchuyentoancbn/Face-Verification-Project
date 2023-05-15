@@ -203,7 +203,7 @@ def pass_epoch(
     metrics = {}
 
     for i_batch, (x, y) in enumerate(loader):
-        # Flip images horizontally with 50% probability
+        # Flip images horizontally with 50% probability of shape [bs, 3, 224, 224]
         if mode == 'Train':
             bs, _, _, _ = x.shape
             flip = torch.rand(bs) > 0.5
@@ -213,10 +213,10 @@ def pass_epoch(
         y = y.to(device)
         y_pred = model(x)
         loss_batch = loss_fn(y_pred, y)
-        loss += loss_batch
+        loss += loss_batch.item()
 
         loss_batch = loss_batch.detach().cpu()
-        
+
         metrics_batch = {}
         for metric_name, metric_fn in batch_metrics.items():
             metrics_batch[metric_name] = metric_fn(y_pred, y).detach().cpu()
