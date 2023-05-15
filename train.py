@@ -167,12 +167,12 @@ def train(args):
             optimizer = optim.Adam(resnet.parameters(), lr=lr_init)
 
         def lambda_rule(step):
-            if step < epochs // 12:
+            if step < 10:
                 return (step + 1) / 10
-            elif step < epochs // 3:
+            elif step < 35:
                 return 1
-            elif step < epochs * 7 / 12:
-                return 0.1
+            elif step < epochs * 70:
+                return 3
             else:
                 return 0.01
         
@@ -211,7 +211,7 @@ def train(args):
                     writer=writer, optimizer=optimizer
                 )
 
-            if (epoch + 1) % 30 == 0:
+            if (epoch + 1) % 20 == 0:
                 print('Validate on LFW')
                 lfw_accuracy = evaluate_lfw(resnet)
 
