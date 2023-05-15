@@ -13,7 +13,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, SubsetRandomSampler
 from torch.utils.tensorboard import SummaryWriter
-from torch.optim.lr_scheduler import MultiStepLR, LambdaLR
+from torch.optim.lr_scheduler import MultiStepLR, LambdaLR, OneCycleLR
 from torchvision import datasets, transforms
 from facenet_pytorch import InceptionResnetV1, fixed_image_standardization
 
@@ -148,8 +148,10 @@ def train(args):
 
     # Train
     for task in range(num_tasks):
-        train_loader = torch.load(f'./data/train_loader_{task}.pth')
-        val_loader = torch.load(f'./data/val_loader_{task}.pth')
+        train_loader = train_loaders[task]
+        val_loader = val_loaders[task]
+        # train_loader = torch.load(f'./data/train_loader_{task}.pth')
+        # val_loader = torch.load(f'./data/val_loader_{task}.pth')
         print('=' * 10)
         print(f'Task {task} starts')
 
@@ -159,13 +161,10 @@ def train(args):
         elif args.optimizer == 'adam':
             optimizer = optim.Adam(resnet.parameters(), lr=lr_init)
 
-        lr_update = lambda step: (step + 1)
-        scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_update)
-        # scheduler = MultiStepLR(optimizer, [5, 10])
+        scheduler = MultiStepLR(optimizer, milestones=[20, 30], gamma=0.5)
 
-        writer = SummaryWriter(LOG_DIR + 'exp1', comment=f'task{task}_{args.optimizer}_lr{lr_init}_bs{batch_size}_epochs{epochs}_momentum{args.momentum}_weight_decay{args.weight_decay}')
+        writer = SummaryWriter(LOG_DIR + 'exp3', comment=f'task{task}_{args.optimizer}_lr{lr_init}_bs{batch_size}_epochs{epochs}_momentum{args.momentum}_weight_decay{args.weight_decay}')
         writer.iteration = 0
-        # writer.interval = 10
 
         print('Initial')
         print('=' * 10)

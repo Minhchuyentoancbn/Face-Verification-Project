@@ -232,17 +232,16 @@ def pass_epoch(
         else:
             logger(loss_batch, metrics_batch, i_batch)
 
-        if optimizer is not None:
-            print(f'Lr: {optimizer.param_groups[0]["lr"]:0.6f}')
+    if optimizer is not None:
+        print(f'Lr: {optimizer.param_groups[0]["lr"]:0.6f}')
 
-    loss = loss / (i_batch + 1)
-    
     if model.training and scheduler is not None:
         scheduler.step()
 
+    loss = loss / (i_batch + 1)
     metrics = {k: v / (i_batch + 1) for k, v in metrics.items()}
             
-    if writer is not None and not model.training:
+    if writer is not None:
         writer.add_scalars('loss', {mode: loss}, writer.iteration)
         for metric_name, metric in metrics.items():
             writer.add_scalars(metric_name, {mode: metric})
