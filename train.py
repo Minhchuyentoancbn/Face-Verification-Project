@@ -108,7 +108,7 @@ def train(args):
             inds = img_inds[targets == i]
             val_size = len(inds) // 5
             if len(inds) < 5:
-                val_inds.append(inds[-1])
+                val_inds.extend(inds[-1:])
                 if len(inds) > 1:
                     train_inds.extend(inds[:-1])
                 else:
