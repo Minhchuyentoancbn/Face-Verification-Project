@@ -32,6 +32,7 @@ def parse_arguments(argv):
     parser.add_argument('--num_tasks', type=int, default=20, help='Number of tasks to split the dataset')
     parser.add_argument('--momentum', type=float, default=0.0, help='Momentum')
     parser.add_argument('--weight_decay', type=float, default=0.0, help='Weight decay')
+    parser.add_argument('--smooth', type=float, default=0.0, help='Label smoothing')
     args = parser.parse_args(argv)
     return args
 
@@ -68,6 +69,7 @@ def train(args):
     batch_size = args.batch_size
     epochs = args.epochs
     lr_init = args.lr
+    label_smoothing = args.smooth
     device = get_device()
 
     # Define model
@@ -143,7 +145,7 @@ def train(args):
     #######################################
 
     # Define loss function and evaluation metrics
-    loss_fn = nn.CrossEntropyLoss()
+    loss_fn = nn.CrossEntropyLoss(label_smoothing=label_smoothing)
     metrics = {
         'accuracy': accuracy,
         'fps': BatchTimer()
@@ -209,9 +211,11 @@ def train(args):
                     writer=writer, optimizer=optimizer
                 )
 
+            if epoch == 9:
+                print('Validate on LFW')
+                lfw_accuracy = evaluate_lfw(resnet)
+
         writer.close()
-        print('Validate on LFW')
-        lfw_accuracy = evaluate_lfw(resnet)
 
         print(f'Task {task + 1} / {num_tasks} finished.')
         print('=' * 20)
