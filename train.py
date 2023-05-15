@@ -164,7 +164,18 @@ def train(args):
         elif args.optimizer == 'adam':
             optimizer = optim.Adam(resnet.parameters(), lr=lr_init)
 
-        scheduler = MultiStepLR(optimizer, milestones=[epochs // 3, int(epochs * 0.6)], gamma=0.1)
+        def lambda_rule(step):
+            if step < epochs // 12:
+                return (step + 1) / 10
+            elif step < epochs // 3:
+                return 10
+            elif step < epochs * 7 / 12:
+                return 0.1
+            else:
+                return 0.01
+        
+        scheduler = LambdaLR(optimizer, lr_lambda=lambda_rule)
+        # scheduler = MultiStepLR(optimizer, milestones=[epochs // 3, int(epochs * 0.6)], gamma=0.1)
 
         writer = SummaryWriter(LOG_DIR + 'exp3', comment=f'task{task}_{args.optimizer}_lr{lr_init}_bs{batch_size}_epochs{epochs}_momentum{args.momentum}_weight_decay{args.weight_decay}')
         writer.iteration = 0
