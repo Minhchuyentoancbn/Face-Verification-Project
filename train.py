@@ -133,10 +133,10 @@ def train(args):
         train_loaders[task] = train_loader
         val_loaders[task] = val_loader
 
-    # Save dataset
-    for task in range(num_tasks):
-        torch.save(train_loaders[task], f'./data/train_loader_{task}.pth')
-        torch.save(val_loaders[task], f'./data/val_loader_{task}.pth')
+    # # Save dataset
+    # for task in range(num_tasks):
+    #     torch.save(train_loaders[task], f'./data/train_loader_{task}.pth')
+    #     torch.save(val_loaders[task], f'./data/val_loader_{task}.pth')
     #######################################
 
     # Define loss function and evaluation metrics
