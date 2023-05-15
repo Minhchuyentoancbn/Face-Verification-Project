@@ -229,8 +229,8 @@ def pass_epoch(
                 writer.add_scalars('loss', {mode: loss_batch.detach().cpu()}, writer.iteration)
                 for metric_name, metric_batch in metrics_batch.items():
                     writer.add_scalars(metric_name, {mode: metric_batch}, writer.iteration)
-                if scheduler is not None:
-                    writer.add_scalars('lr', {mode: scheduler.get_last_lr()[0]}, writer.iteration)
+                if optimizer is not None:
+                    writer.add_scalars('lr', {mode: optimizer.param_groups[0]['lr']}, writer.iteration)
             writer.iteration += 1
         
         loss_batch = loss_batch.detach().cpu()
@@ -240,8 +240,8 @@ def pass_epoch(
         else:
             logger(loss_batch, metrics_batch, i_batch)
 
-        if scheduler is not None:
-            print(f'Lr: {scheduler.get_last_lr()[0]:.6f}')
+        if optimizer is not None:
+            print(f'Lr: {optimizer.param_groups[0]["lr"]:0.6f}')
     
         if model.training and scheduler is not None:
             scheduler.step()
@@ -253,8 +253,8 @@ def pass_epoch(
         writer.add_scalars('loss', {mode: loss.detach()}, writer.iteration)
         for metric_name, metric in metrics.items():
             writer.add_scalars(metric_name, {mode: metric})
-        if scheduler is not None:
-            writer.add_scalars('lr', {mode: scheduler.get_last_lr()[0]}, writer.iteration)
+        if optimizer is not None:
+            writer.add_scalars('lr', {mode: optimizer.param_groups[0]['lr']}, writer.iteration)
         
     return loss, metrics
 
