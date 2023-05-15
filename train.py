@@ -160,7 +160,7 @@ def train(args):
             optimizer = optim.Adam(resnet.parameters(), lr=lr_init)
 
         lr_end = 20
-        num_steps = 4800
+        num_steps = 0.48
         lr_update = lambda step: lr_init + (lr_end - lr_init) * step / num_steps
         scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_update)
         # scheduler = MultiStepLR(optimizer, [5, 10])
