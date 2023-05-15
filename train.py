@@ -63,7 +63,6 @@ def preprocess_data(args):
 
 
 def train(args):
-    # empty_folder('runs/exp1/')
 
     # Define hyperparameters
     batch_size = args.batch_size
@@ -160,8 +159,8 @@ def train(args):
         elif args.optimizer == 'adam':
             optimizer = optim.Adam(resnet.parameters(), lr=lr_init)
 
-        lr_end = 10
-        num_steps = 1000
+        lr_end = 20
+        num_steps = 4800
         lr_update = lambda step: lr_init + (lr_end - lr_init) * step / num_steps
         scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_update)
         # scheduler = MultiStepLR(optimizer, [5, 10])
@@ -197,7 +196,6 @@ def train(args):
             )
 
         writer.close()
-
         print('Validate on LFW')
         lfw_accuracy = evaluate_lfw(resnet)
 
@@ -205,6 +203,7 @@ def train(args):
         print('=' * 20)
 
         break
+    # Save model
 
     del resnet
 
