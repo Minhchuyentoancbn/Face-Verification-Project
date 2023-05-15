@@ -92,8 +92,12 @@ def train(args):
     # disjoint classes.
     num_tasks = args.num_tasks
     num_classes_per_task = num_classes // num_tasks
-    classes = np.arange(num_classes)
-    np.random.shuffle(classes)
+    if os.path.exists('./data/classes.npy'):
+        classes = np.load('./data/classes.npy')
+    else:
+        classes = np.arange(num_classes)
+        np.random.shuffle(classes)
+        np.save('./data/classes.npy', classes)
 
     train_loaders = dict()
     val_loaders = dict()
