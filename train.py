@@ -175,7 +175,7 @@ def train(args):
                 return (step + 1) / 10
             elif step < 40:
                 return 1
-            elif step < 55:
+            elif step < 53:
                 return 0.1
             else:
                 return 0.01
