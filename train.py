@@ -222,6 +222,9 @@ def train(args):
         print(f'Task {task + 1} / {num_tasks} finished.')
         print('=' * 20)
 
+        print('Validate on LFW')
+        lfw_accuracy = evaluate_lfw(resnet)
+
         # Save model
         torch.save(resnet.state_dict(), f'./trained_models/resnet_{task}.pth')
         break
