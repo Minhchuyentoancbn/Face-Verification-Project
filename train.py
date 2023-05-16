@@ -19,8 +19,8 @@ from facenet_pytorch import InceptionResnetV1, fixed_image_standardization
 
 
 device = get_device()
-# casia_cropped_path = os.path.join(DATA_PATH, 'CASIA-WebFace-cropped/')
-casia_cropped_path = '/kaggle/input/casia-webface-cropped-with-mtcnn/CASIA-WebFace-cropped'
+casia_cropped_path = os.path.join(DATA_PATH, 'CASIA-WebFace-cropped/')
+# casia_cropped_path = '/kaggle/input/casia-webface-cropped-with-mtcnn/CASIA-WebFace-cropped'
 
 
 def parse_arguments(argv):
@@ -140,8 +140,8 @@ def train(args):
 
     # # Save dataset
     # for task in range(num_tasks):
-    #     torch.save(train_loaders[task], f'./data/train_loader_{task}.pth')
-    #     torch.save(val_loaders[task], f'./data/val_loader_{task}.pth')
+        # torch.save(train_loaders[task], f'./data/train_loader_{task}.pth')
+        # torch.save(val_loaders[task], f'./data/val_loader_{task}.pth')
     #######################################
 
     # Define loss function and evaluation metrics
@@ -169,17 +169,19 @@ def train(args):
         def lambda_rule(step):
             if step < 10:
                 return (step + 1) / 10
-            elif step < 35:
+            elif step < 30:
                 return 1
-            elif step < 60:
+            elif step < 35:
                 return 0.1
-            else:
+            elif step < 40:
                 return 0.01
+            else:
+                return 0.001
         
         scheduler = LambdaLR(optimizer, lr_lambda=lambda_rule)
         # scheduler = MultiStepLR(optimizer, milestones=[epochs // 3, int(epochs * 0.6)], gamma=0.1)
 
-        writer = SummaryWriter(LOG_DIR + 'exp3', comment=f'task{task}_{args.optimizer}_lr{lr_init}_bs{batch_size}_epochs{epochs}_momentum{args.momentum}_weight_decay{args.weight_decay}')
+        writer = SummaryWriter(LOG_DIR + 'exp4', comment=f'task{task}_{args.optimizer}_lr{lr_init}_bs{batch_size}_epochs{epochs}_momentum{args.momentum}_weight_decay{args.weight_decay}')
         writer.iteration = 0
 
         print('Initial')
