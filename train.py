@@ -11,7 +11,7 @@ from utils import get_device, seed_everything, collate_pil, weights_init, accura
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, SubsetRandomSampler
+from torch.utils.data import DataLoader, SubsetRandomSampler, Subset
 from torch.utils.tensorboard import SummaryWriter
 from torch.optim.lr_scheduler import MultiStepLR, LambdaLR, OneCycleLR
 from torchvision import datasets, transforms
@@ -128,15 +128,16 @@ def train(args):
         np.random.shuffle(train_inds)
         np.random.shuffle(val_inds)
 
+        train_set = Subset(dataset, train_inds)
+        val_set = Subset(dataset, val_inds)
+
         train_loader = DataLoader(
-            dataset,
+            train_set,
             batch_size=batch_size,
-            sampler=SubsetRandomSampler(train_inds)
         )
         val_loader = DataLoader(
-            dataset,
-            batch_size=batch_size,
-            sampler=SubsetRandomSampler(val_inds)
+            val_set,
+            batch_size=batch_size
         )
         train_loaders[task] = train_loader
         val_loaders[task] = val_loader
@@ -174,7 +175,7 @@ def train(args):
                 return (step + 1) / 10
             elif step < 40:
                 return 1
-            elif step < 65:
+            elif step < 55:
                 return 0.1
             else:
                 return 0.01
