@@ -167,7 +167,7 @@ def train(args):
         if args.optimizer == 'sgd':
             optimizer = optim.SGD(resnet.parameters(), lr=lr_init, momentum=args.momentum, weight_decay=args.weight_decay)
         elif args.optimizer == 'adam':
-            optimizer = optim.Adam(resnet.parameters(), lr=lr_init)
+            optimizer = optim.Adam(resnet.parameters(), lr=lr_init, weight_decay=args.weight_decay, eps=0.1)
 
         def lambda_rule(step):
             if step < 10:
