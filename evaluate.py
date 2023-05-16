@@ -132,7 +132,7 @@ def calculate_val_far(threshold, dist, actual_issame):
 
 
 
-def evaluate(embeddings, actual_issame, nrof_folds=10, distance_metric=0, subtract_mean=False):
+def evaluate(embeddings, actual_issame, nrof_folds=10, distance_metric=1, subtract_mean=False):
     # Calculate evaluation metrics
     thresholds = np.arange(0, 4, 0.01)
     embeddings1 = embeddings[0::2]
