@@ -29,7 +29,7 @@ def parse_arguments(argv):
     parser.add_argument('--epochs', type=int, default=5, help='Number of epochs')
     parser.add_argument('--optimizer', type=str, default='sgd', help='Optimizer types: {sgd, adam}')
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
-    parser.add_argument('--num_tasks', type=int, default=20, help='Number of tasks to split the dataset')
+    parser.add_argument('--num_tasks', type=int, default=10, help='Number of tasks to split the dataset')
     parser.add_argument('--momentum', type=float, default=0.0, help='Momentum')
     parser.add_argument('--weight_decay', type=float, default=0.0, help='Weight decay')
     parser.add_argument('--smooth', type=float, default=0.0, help='Label smoothing')
