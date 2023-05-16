@@ -232,7 +232,7 @@ def pass_epoch(
 
         # Triplet loss
         if args.triplet:
-            loss_batch += triplet_loss(linear, margin=0.2)
+            loss_batch += triplet_loss(linear, margin=args.margin)
 
         if model.training:
             optimizer.zero_grad()

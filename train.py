@@ -35,6 +35,7 @@ def parse_arguments(argv):
     parser.add_argument('--smooth', type=float, default=0.0, help='Label smoothing')
     parser.add_argument('--dropout', type=float, default=0.2, help='Dropout probability for last fully connected layer')
     parser.add_argument('--triplet', type=bool, default=False, help='Use triplet loss')
+    parser.add_argument('--margin', type=float, default=0.2, help='Margin for triplet loss')
     args = parser.parse_args(argv)
     return args
 
