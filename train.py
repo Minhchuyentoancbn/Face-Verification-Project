@@ -169,12 +169,10 @@ def train(args):
         def lambda_rule(step):
             if step < 10:
                 return (step + 1) / 10
-            elif step < 30:
+            elif step < 35:
                 return 1
             elif step < 40:
                 return 0.1
-            # elif step < 40:
-            #     return 0.01
             else:
                 return 0.01
         
