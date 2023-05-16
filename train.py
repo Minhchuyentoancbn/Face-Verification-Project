@@ -172,9 +172,9 @@ def train(args):
         def lambda_rule(step):
             if step < 10:
                 return (step + 1) / 10
-            elif step < 35:
+            elif step < 40:
                 return 1
-            elif step < 47:
+            elif step < 65:
                 return 0.1
             else:
                 return 0.01
@@ -223,8 +223,9 @@ def train(args):
         print(f'Task {task + 1} / {num_tasks} finished.')
         print('=' * 20)
 
-        print('Validate on LFW')
-        lfw_accuracy = evaluate_lfw(resnet)
+        if epochs % 20 != 0:
+            print('Validate on LFW')
+            lfw_accuracy = evaluate_lfw(resnet)
 
         # Save model
         torch.save(resnet.state_dict(), f'./trained_models/resnet_{task}.pth')
