@@ -34,6 +34,7 @@ def parse_arguments(argv):
     parser.add_argument('--weight_decay', type=float, default=0.0, help='Weight decay')
     parser.add_argument('--smooth', type=float, default=0.0, help='Label smoothing')
     parser.add_argument('--dropout', type=float, default=0.2, help='Dropout probability for last fully connected layer')
+    parser.add_argument('--triplet', type=bool, default=False, help='Use triplet loss')
     args = parser.parse_args(argv)
     return args
 
@@ -173,9 +174,9 @@ def train(args):
         def lambda_rule(step):
             if step < 10:
                 return (step + 1) / 10
-            elif step < 40:
+            elif step < 33:
                 return 1
-            elif step < 53:
+            elif step < 43:
                 return 0.1
             else:
                 return 0.01
@@ -193,7 +194,7 @@ def train(args):
             pass_epoch(
                 resnet, loss_fn, val_loader,
                 batch_metrics=metrics, show_running=True, device=device,
-                writer=writer
+                writer=writer, args=args
             )
 
         for epoch in range(epochs):
@@ -204,7 +205,7 @@ def train(args):
             pass_epoch(
                 resnet, loss_fn, train_loader, optimizer, scheduler,
                 batch_metrics=metrics, show_running=True, device=device,
-                writer=writer
+                writer=writer, args=args
             )
 
             resnet.eval()
@@ -212,7 +213,7 @@ def train(args):
                 pass_epoch(
                     resnet, loss_fn, val_loader,
                     batch_metrics=metrics, show_running=True, device=device,
-                    writer=writer, optimizer=optimizer
+                    writer=writer, optimizer=optimizer, args=args
                 )
 
             if (epoch + 1) % 20 == 0:
