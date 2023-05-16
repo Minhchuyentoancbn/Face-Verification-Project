@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, SequentialSampler
 from torchvision import datasets, transforms
-from facenet_pytorch import fixed_image_standardization, extract_face
+from facenet_pytorch import fixed_image_standardization
 
 import numpy as np
 import os

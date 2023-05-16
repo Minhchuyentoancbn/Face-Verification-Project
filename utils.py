@@ -1,10 +1,11 @@
 import os
 import time
 import numpy as np
+from triplet_loss import triplet_loss
 
 import torch
 import torch.nn as nn
-from torchvision.transforms.functional import adjust_brightness, adjust_contrast, hflip, gaussian_blur
+from torchvision.transforms.functional import adjust_brightness, adjust_contrast, hflip
 
 
 def empty_folder(folder_path: str) -> None:
@@ -226,8 +227,12 @@ def pass_epoch(
 
         x = x.to(device)
         y = y.to(device)
-        y_pred, _ = model(x)
+        y_pred, linear = model(x)
         loss_batch = loss_fn(y_pred, y)
+
+        # Triplet loss
+        if args.triplet:
+            loss_batch += triplet_loss(linear, margin=0.2)
 
         if model.training:
             optimizer.zero_grad()
@@ -265,7 +270,7 @@ def pass_epoch(
         writer.iteration += 1
 
     # Free intermediate variables
-    del x, y, y_pred, loss_batch, metrics_batch
+    del x, y, y_pred, loss_batch, metrics_batch, linear
 
     return loss, metrics
 
