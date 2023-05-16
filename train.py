@@ -171,12 +171,12 @@ def train(args):
                 return (step + 1) / 10
             elif step < 30:
                 return 1
-            elif step < 35:
-                return 0.1
             elif step < 40:
-                return 0.01
+                return 0.1
+            # elif step < 40:
+            #     return 0.01
             else:
-                return 0.001
+                return 0.01
         
         scheduler = LambdaLR(optimizer, lr_lambda=lambda_rule)
         # scheduler = MultiStepLR(optimizer, milestones=[epochs // 3, int(epochs * 0.6)], gamma=0.1)
