@@ -157,7 +157,8 @@ def pass_epoch(
     batch_metrics: dict={'time': BatchTimer()}, 
     show_running: bool=True,
     device='cpu', 
-    writer=None
+    writer=None,
+    args=None
 ):
     """Train or evaluate over a data epoch.
     
@@ -192,6 +193,8 @@ def pass_epoch(
     writer: torch.utils.tensorboard.SummaryWriter 
         Tensorboard SummaryWriter. (default: {None})
     
+    args: argparse.ArgumentParser
+        Command line arguments. (default: {None})
     Returns:
     -------
     tuple(torch.Tensor, dict) 
@@ -223,7 +226,7 @@ def pass_epoch(
 
         x = x.to(device)
         y = y.to(device)
-        y_pred = model(x)
+        y_pred, _ = model(x)
         loss_batch = loss_fn(y_pred, y)
 
         if model.training:

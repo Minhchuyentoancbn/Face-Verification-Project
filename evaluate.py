@@ -221,7 +221,7 @@ def evaluate_lfw(model: nn.Module,
     with torch.no_grad():
         for xb, yb in embed_loader:
             xb = xb.to(device)
-            b_embeddings = resnet(xb)
+            b_embeddings, _ = resnet(xb)
             b_embeddings = b_embeddings.to('cpu').numpy()
             classes.extend(yb.numpy())
             embeddings.extend(b_embeddings)
