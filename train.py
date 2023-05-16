@@ -33,6 +33,7 @@ def parse_arguments(argv):
     parser.add_argument('--momentum', type=float, default=0.0, help='Momentum')
     parser.add_argument('--weight_decay', type=float, default=0.0, help='Weight decay')
     parser.add_argument('--smooth', type=float, default=0.0, help='Label smoothing')
+    parser.add_argument('--dropout', type=float, default=0.6, help='Dropout probability')
     args = parser.parse_args(argv)
     return args
 
@@ -70,11 +71,13 @@ def train(args):
     epochs = args.epochs
     lr_init = args.lr
     label_smoothing = args.smooth
+    dropout_prob = args.dropout
+
     device = get_device()
 
     # Define model
     num_classes = len(os.listdir(casia_cropped_path))
-    resnet = InceptionResnetV1(classify=True, num_classes=num_classes)
+    resnet = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob)
     resnet = weights_init(resnet).to(device)
 
     #######################################
@@ -171,7 +174,7 @@ def train(args):
                 return (step + 1) / 10
             elif step < 35:
                 return 1
-            elif step < 45:
+            elif step < 47:
                 return 0.1
             else:
                 return 0.01
