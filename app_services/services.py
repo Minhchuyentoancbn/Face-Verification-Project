@@ -83,7 +83,7 @@ def verification(
     mtcnn: torch.nn.Module,
     facenet: torch.nn.Module,
     prob_threshold: float = DETECTION_THRESHOLD,
-    threshold: float = 0.83
+    threshold: float = VERIFICATION_THRESHOLD
 ):
     """
     Verifies the user's identity
@@ -106,7 +106,7 @@ def verification(
         Probability threshold for face detection
 
     threshold : float, optional
-        Threshold value for cosine similarity, by default 0.83
+        Threshold value for cosine similarity
 
     Returns
     -------
@@ -162,7 +162,7 @@ def identification(
     mtcnn: torch.nn.Module,
     facenet: torch.nn.Module,
     prob_threshold: float = DETECTION_THRESHOLD,
-    threshold: float = 0.83
+    threshold: float = VERIFICATION_THRESHOLD
 ):
     """
     Identifies the person in the video
@@ -182,7 +182,7 @@ def identification(
         Probability threshold for face detection
 
     threshold : float, optional
-        Threshold value for cosine similarity, by default 0.83
+        Threshold value for cosine similarity
 
     Returns
     -------

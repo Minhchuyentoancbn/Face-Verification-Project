@@ -1,5 +1,6 @@
 IMAGE_SIZE = 160  # All images will be resized to this size
 DETECTION_THRESHOLD = 0.9999  # Probability threshold to detect a face
+VERIFICATION_THRESHOLD = 0.83  # Distance threshold to decide whether faces belong to the same person
 
 SEED = 42
 
