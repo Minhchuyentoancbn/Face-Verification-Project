@@ -175,7 +175,7 @@ def train(args):
             optimizer = optim.Adam(resnet.parameters(), lr=lr_init, weight_decay=args.weight_decay, eps=0.1)
 
         def lambda_rule(step):
-            if step < 10:
+            if step < 13:
                 return 1#(step + 1) / 10
             elif step < 33:
                 return 2
