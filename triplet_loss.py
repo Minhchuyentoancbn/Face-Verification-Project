@@ -40,7 +40,7 @@ def euclidean_dist(x, y):
     xx = torch.pow(x, 2).sum(1, keepdim=True).expand(m, n)
     yy = torch.pow(y, 2).sum(1, keepdim=True).expand(n, m).t()
     dist = xx + yy
-    dist.addmm_(1, -2, x, y.t())
+    dist.addmm_(x, y.t(), beta=1, alpha=-2)
     dist = dist.clamp(min=1e-12).sqrt()  # for numerical stability
     return dist
 
@@ -112,7 +112,7 @@ def _get_anchor_positive_triplet_mask(labels):
         PyTorch BoolTensor with shape [batch_size, batch_size]
     """
     # Check that i and j are distinct
-    indices_equal = torch.eye(labels.size(0)).bool()
+    indices_equal = torch.eye(labels.size(0)).bool().to(labels.device)
     
     # Check if labels[i] == labels[j]
     labels_equal = labels.unsqueeze(0) == labels.unsqueeze(1)
