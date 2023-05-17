@@ -178,7 +178,7 @@ def train(args):
             if step < 10:
                 return 1#(step + 1) / 10
             elif step < 33:
-                return 1
+                return 2
             elif step < 43:
                 return 0.1
             else:
