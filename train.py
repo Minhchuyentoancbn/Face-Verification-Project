@@ -176,7 +176,7 @@ def train(args):
 
         def lambda_rule(step):
             if step < 10:
-                return (step + 1) / 10
+                return 1#(step + 1) / 10
             elif step < 33:
                 return 1
             elif step < 43:
