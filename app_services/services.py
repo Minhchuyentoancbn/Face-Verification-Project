@@ -227,7 +227,7 @@ def identification(
 
     if len(user_similarity) == 0:
         print("No user found")
-        return None
+        return ""
     
     # Get the user with the highest similarity
     user = max(user_similarity, key=user_similarity.get)
