@@ -47,4 +47,3 @@ def get_mtcnn(
 
 def get_facenet() -> torch.nn.Module:
     return InceptionResnetV1(pretrained='vggface2')
-

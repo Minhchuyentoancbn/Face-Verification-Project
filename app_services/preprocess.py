@@ -12,7 +12,7 @@ import torch.nn as nn
 
 def process_video(
     path: str,
-    crop: bool = False,
+    save: bool = False,
     prob_threshold: float = DETECTION_THRESHOLD,
     mtcnn: nn.Module = None
 ) -> List[torch.Tensor]:
@@ -26,11 +26,11 @@ def process_video(
     path : str
         Path to the video file
 
-    crop : bool, optional
-        Whether to crop faces from the frames, by default False
+    save : bool, optional
+        Whether to save the frames or not, by default False
 
     prob_threshold : float, optional
-        Probability threshold for face detection, by default 0.99
+        Probability threshold for face detection
 
     mtcnn : nn.Module, optional
         MTCNN model, by default None
@@ -61,7 +61,7 @@ def process_video(
         return []
     
     # Get the frame and number of frames
-    fps = cap.get(cv2.CAP_PROP_FPS)
+    # fps = cap.get(cv2.CAP_PROP_FPS)
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
     # set the sample time between samples
@@ -86,21 +86,22 @@ def process_video(
             image = Image.fromarray(frame_rgb)
 
             # save the PIL image to file or process it further
-            image.save(f'app_data/temp/picture/frame_{i}.jpg')
+            if save:
+                image.save(f'app_data/temp/picture/frame_{i}.jpg')
 
             # update the position for the next sample
             pos_msec += sample_time
 
             # Crop the faces from the frames
-            if crop:
-                x_aligned, prob = mtcnn(image, return_prob=True)
-                if prob is not None:
-                    if prob > prob_threshold:
-                        # Add the image to the list
-                        images_list.append(x_aligned)
+            x_aligned, prob = mtcnn(image, return_prob=True)
+            if prob is not None:
+                if prob > prob_threshold:
+                    # Add the image to the list
+                    images_list.append(x_aligned)
+                    if save:
                         # Convert from tensor to PIL image and save
                         x_aligned = x_aligned.permute(1, 2, 0).to('cpu').numpy()
-                        x_aligned = x_aligned / 0.0078125 + 127.5
+                        x_aligned = x_aligned * 128 + 127.5
                         x_aligned = x_aligned.astype(np.uint8)
                         x_aligned = Image.fromarray(x_aligned)
 
