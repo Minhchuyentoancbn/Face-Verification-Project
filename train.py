@@ -37,6 +37,7 @@ def parse_arguments(argv):
     parser.add_argument('--dropout', type=float, default=0.2, help='Dropout probability for last fully connected layer')
     parser.add_argument('--triplet', type=bool, default=False, help='Use triplet loss')
     parser.add_argument('--margin', type=float, default=0.2, help='Margin for triplet loss')
+    parser.add_argument('--eval_cycle', type=int, default=20, help='Evaluate every n epochs')
     args = parser.parse_args(argv)
     return args
 
@@ -218,7 +219,7 @@ def train(args):
                     writer=writer, optimizer=optimizer, args=args
                 )
 
-            if (epoch + 1) % 20 == 0:
+            if (epoch + 1) % args.eval_cycle == 0:
                 print('Validate on LFW')
                 lfw_accuracy = evaluate_lfw(resnet)
 
@@ -227,15 +228,14 @@ def train(args):
         print(f'Task {task + 1} / {num_tasks} finished.')
         print('=' * 20)
 
-        if epochs % 20 != 0:
+        if epochs % args.eval_cycle != 0:
             print('Validate on LFW')
             lfw_accuracy = evaluate_lfw(resnet)
 
         # Save model
         torch.save(resnet.state_dict(), f'./trained_models/task{task}_resnet.pth')
 
-        if task == 1:
-            break
+        break
 
 
 
