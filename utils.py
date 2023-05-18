@@ -270,9 +270,9 @@ def pass_epoch(
 
         # Validation per batch
         if validate_per_batch:
-            validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args)
             print(f'Lr: {optimizer.param_groups[0]["lr"]:0.6f}')
             scheduler.step()
+            validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args)
 
             if writer is not None:
                 writer.add_scalars('loss', {mode: loss / (i_batch + 1)}, writer.iteration)
@@ -283,9 +283,10 @@ def pass_epoch(
 
     # Validation per epoch
     if not validate_per_batch:
-        validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args)
         print(f'Lr: {optimizer.param_groups[0]["lr"]:0.6f}')
         scheduler.step()
+        validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args)
+
 
         if writer is not None:
             writer.add_scalars('loss', {mode: loss / (i_batch + 1)}, writer.iteration)
