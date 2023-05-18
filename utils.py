@@ -5,7 +5,7 @@ from triplet_loss import triplet_loss
 
 import torch
 import torch.nn as nn
-from torchvision.transforms.functional import adjust_brightness, adjust_contrast, hflip
+from torchvision.transforms.functional import hflip
 
 
 def empty_folder(folder_path: str) -> None:
@@ -43,6 +43,29 @@ def seed_everything(seed=42) -> None:
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
+
+
+def collate_pil(x):
+    out_x, out_y = [], [] 
+    for xx, yy in x: 
+        out_x.append(xx) 
+        out_y.append(yy) 
+    return out_x, out_y
+
+
+def weights_init(models: nn.Module):
+    # Initialize weights
+    for m in models.modules():
+        if isinstance(m, nn.Conv2d):
+            nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+        elif isinstance(m, nn.BatchNorm2d):
+            nn.init.constant_(m.weight, 1)
+        elif isinstance(m, nn.Linear):
+            nn.init.xavier_normal_(m.weight)
+        elif isinstance(m, nn.BatchNorm1d):
+            nn.init.constant_(m.weight, 1)
+
+    return models
 
 
 class Logger(object):
@@ -152,16 +175,18 @@ def accuracy(logits, y):
 def pass_epoch(
     model: nn.Module, 
     loss_fn: callable, 
-    loader: torch.utils.data.DataLoader, 
+    train_loader: torch.utils.data.DataLoader,
+    valid_loader: torch.utils.data.DataLoader,
     optimizer: torch.optim.Optimizer=None, 
     scheduler: torch.optim.lr_scheduler._LRScheduler=None,
-    batch_metrics: dict={'time': BatchTimer()}, 
-    show_running: bool=True,
-    device='cpu', 
+    batch_metrics: dict={'time': BatchTimer()},
+    validate_per_batch: bool=False,
+    device='gpu', 
     writer=None,
     args=None
 ):
-    """Train or evaluate over a data epoch.
+    """
+    rain over a data epoch.
     
     Parameters:
     ----------
@@ -171,8 +196,11 @@ def pass_epoch(
     loss_fn: callable
         A function to compute (scalar) loss.
 
-    loader: torch.utils.data.DataLoader
-        A pytorch data loader.
+    train_loader: torch.utils.data.DataLoader
+        DataLoader for training data.
+
+    valid_loader: torch.utils.data.DataLoader
+        DataLoader for validation data.
     
     optimizer: torch.optim.Optimizer
         A pytorch optimizer.
@@ -185,14 +213,129 @@ def pass_epoch(
         is a simple timer. A progressive average of these metrics, along with the average
         loss, is printed every batch. (default: {{'time': iter_timer()}})
 
-    show_running: bool
-        Whether or not to print losses and metrics for the current batch or rolling averages. (default: {False})
+    validate_per_batch: bool
+        Whether to calculate validation metrics every batch or every epoch. (default: {False})
 
     device: str or torch.device
         Device for pytorch to use. (default: {'cpu'})
         
     writer: torch.utils.tensorboard.SummaryWriter 
         Tensorboard SummaryWriter. (default: {None})
+    
+    args: argparse.ArgumentParser
+        Command line arguments. (default: {None})
+        
+    Returns:
+    -------
+    tuple(torch.Tensor, dict) 
+        A tuple of the average loss and a dictionary of average metric values across the epoch.
+    """
+    
+    # Set model to train or eval mode
+    mode = 'Train' if model.training else 'Valid'
+    if mode == 'Valid':
+        model.train()
+        mode = 'Train'
+
+    logger = Logger(mode, length=len(train_loader), calculate_mean=True)
+    loss = 0
+    metrics = {}
+
+    for i_batch, (x, y) in enumerate(train_loader):
+        # Forward pass
+        x = x.to(device)
+        y = y.to(device)
+        model.train()
+        y_pred, linear = model(x)
+        loss_batch = loss_fn(y_pred, y)
+
+        # Triplet loss
+        if args.triplet:
+            loss_batch += triplet_loss(linear, y, margin=args.margin)
+
+        # Backward pass
+        optimizer.zero_grad()
+        loss_batch.backward()
+        optimizer.step()
+
+        loss_batch = loss_batch.detach().cpu()
+        loss += loss_batch.item()
+
+        # Update metrics and print values
+        metrics_batch = {}
+        for metric_name, metric_fn in batch_metrics.items():
+            metrics_batch[metric_name] = metric_fn(y_pred, y).detach().cpu()
+            metrics[metric_name] = metrics.get(metric_name, 0) + metrics_batch[metric_name]
+        logger(loss, metrics, i_batch)
+
+        # Validation per batch
+        if validate_per_batch:
+            validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args)
+            print(f'Lr: {optimizer.param_groups[0]["lr"]:0.6f}')
+            scheduler.step()
+
+            if writer is not None:
+                writer.add_scalars('loss', {mode: loss / (i_batch + 1)}, writer.iteration)
+                for metric_name, metric in metrics.items():
+                    writer.add_scalars(metric_name, {mode: metric / (i_batch + 1)})
+                if optimizer is not None:
+                    writer.add_scalars('lr', {mode: optimizer.param_groups[0]['lr']}, writer.iteration)
+
+    # Validation per epoch
+    if not validate_per_batch:
+        validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args)
+        print(f'Lr: {optimizer.param_groups[0]["lr"]:0.6f}')
+        scheduler.step()
+
+        if writer is not None:
+            writer.add_scalars('loss', {mode: loss / (i_batch + 1)}, writer.iteration)
+            for metric_name, metric in metrics.items():
+                writer.add_scalars(metric_name, {mode: metric / (i_batch + 1)})
+            if optimizer is not None:
+                writer.add_scalars('lr', {mode: optimizer.param_groups[0]['lr']}, writer.iteration)
+
+    # Free intermediate variables
+    del x, y, y_pred, loss_batch, metrics_batch, linear
+    return loss, metrics
+
+
+def validate(
+    model: nn.Module, 
+    loss_fn: callable, 
+    loader: torch.utils.data.DataLoader, 
+    batch_metrics: dict={'time': BatchTimer()}, 
+    device='gpu', 
+    writer=None,
+    optimizer=None,
+    args=None
+):
+    """
+    Evaluate over a data loader
+    
+    Parameters:
+    ----------
+    model: torch.nn.Module
+        Pytorch model.
+
+    loss_fn: callable
+        A function to compute (scalar) loss.
+
+    loader: torch.utils.data.DataLoader
+        A pytorch data loader.
+
+    batch_metrics: dict 
+        Dictionary of metric functions to call on each batch. The default
+        is a simple timer. A progressive average of these metrics, along with the average
+        loss, is printed every batch. (default: {{'time': iter_timer()}})
+
+    device: str or torch.device
+        Device for pytorch to use. (default: {'cpu'})
+        
+    writer: torch.utils.tensorboard.SummaryWriter 
+        Tensorboard SummaryWriter. (default: {None})
+
+    optimizer: torch.optim.Optimizer
+        Pytorch optimizer. (default: {None})
     
     args: argparse.ArgumentParser
         Command line arguments. (default: {None})
@@ -203,41 +346,26 @@ def pass_epoch(
     """
     
     mode = 'Train' if model.training else 'Valid'
-    logger = Logger(mode, length=len(loader), calculate_mean=show_running)
+    if mode == 'Train':
+        model.eval()
+        mode = 'Valid'
+
     loss = 0
     metrics = {}
+    logger = Logger(mode, length=len(loader), calculate_mean=True)
 
     for i_batch, (x, y) in enumerate(loader):
-        # Flip images horizontally with 50% probability of shape [bs, 3, 224, 224]
-        if mode == 'Train':
-            # Augment images only during training
-            bs, _, _, _ = x.shape
-
-            # Flip images horizontally with 50% probability
-            probability = torch.rand(bs)
-            idx = torch.arange(bs)[probability > 0.5]
-            x[idx] = hflip(x[idx])
-
-            # Randomly adjust brightness, contrast
-            probability = torch.rand(bs)
-            idx = torch.arange(bs)[probability > 0.5]
-            p = np.random.choice([0.75, 1.25])
-            x[idx] = adjust_brightness(x[idx], p)
-            x[idx] = adjust_contrast(x[idx], p)
-
-        x = x.to(device)
+        # Flip images horizontally
+        x = hflip(x).to(device)
         y = y.to(device)
-        y_pred, linear = model(x)
+        with torch.no_grad():
+            y_pred, linear = model(x)
+
         loss_batch = loss_fn(y_pred, y)
 
         # Triplet loss
         if args.triplet:
             loss_batch += triplet_loss(linear, y, margin=args.margin)
-
-        if model.training:
-            optimizer.zero_grad()
-            loss_batch.backward()
-            optimizer.step()
 
         loss_batch = loss_batch.detach().cpu()
         loss += loss_batch.item()
@@ -247,16 +375,7 @@ def pass_epoch(
             metrics_batch[metric_name] = metric_fn(y_pred, y).detach().cpu()
             metrics[metric_name] = metrics.get(metric_name, 0) + metrics_batch[metric_name]
 
-        if show_running:
-            logger(loss, metrics, i_batch)
-        else:
-            logger(loss_batch, metrics_batch, i_batch)
-
-    if optimizer is not None:
-        print(f'Lr: {optimizer.param_groups[0]["lr"]:0.6f}')
-
-    if model.training and scheduler is not None:
-        scheduler.step()
+    logger(loss, metrics, i_batch)
 
     loss = loss / (i_batch + 1)
     metrics = {k: v / (i_batch + 1) for k, v in metrics.items()}
@@ -273,26 +392,3 @@ def pass_epoch(
     del x, y, y_pred, loss_batch, metrics_batch, linear
 
     return loss, metrics
-
-
-def collate_pil(x):
-    out_x, out_y = [], [] 
-    for xx, yy in x: 
-        out_x.append(xx) 
-        out_y.append(yy) 
-    return out_x, out_y
-
-
-def weights_init(models: nn.Module):
-    # Initialize weights
-    for m in models.modules():
-        if isinstance(m, nn.Conv2d):
-            nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-        elif isinstance(m, nn.BatchNorm2d):
-            nn.init.constant_(m.weight, 1)
-        elif isinstance(m, nn.Linear):
-            nn.init.xavier_normal_(m.weight)
-        elif isinstance(m, nn.BatchNorm1d):
-            nn.init.constant_(m.weight, 1)
-
-    return models
