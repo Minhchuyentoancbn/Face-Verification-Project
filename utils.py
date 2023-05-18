@@ -281,6 +281,9 @@ def pass_epoch(
                 if optimizer is not None:
                     writer.add_scalars('lr', {mode: optimizer.param_groups[0]['lr']}, writer.iteration)
 
+        if i_batch == 400:
+            break
+
     # Validation per epoch
     if not validate_per_batch:
         print(f'Lr: {optimizer.param_groups[0]["lr"]:0.6f}')
