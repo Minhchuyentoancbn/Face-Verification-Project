@@ -92,13 +92,11 @@ def main(args):
 
         for i in task_classes:
             inds = img_inds[targets == i]
-            val_size = len(inds) // 5
-            if len(inds) < 5:
+            train_inds.extend(inds)
+            if len(inds) <= 3:
                 val_inds.extend(inds)
-                train_inds.extend(inds)
             else:
-                train_inds.extend(inds[val_size:])
-                val_inds.extend(inds[:val_size])
+                val_inds.extend(inds[-3:])
 
         train_inds = np.array(train_inds)
         val_inds = np.array(val_inds)
