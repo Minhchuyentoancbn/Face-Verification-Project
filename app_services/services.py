@@ -1,6 +1,6 @@
 import os
 
-from app_services.preprocess import process_video
+from .preprocess import process_video
 from utils import get_device
 from config import *
 

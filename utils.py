@@ -274,6 +274,7 @@ def pass_epoch(
             scheduler.step()
             validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args)
 
+            # Log to tensorboard
             if writer is not None:
                 writer.add_scalars('loss', {mode: loss / (i_batch + 1)}, writer.iteration)
                 for metric_name, metric in metrics.items():
@@ -288,7 +289,7 @@ def pass_epoch(
         scheduler.step()
         validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args)
 
-
+        # Log to tensorboard
         if writer is not None:
             writer.add_scalars('loss', {mode: loss / (i_batch + 1)}, writer.iteration)
             for metric_name, metric in metrics.items():

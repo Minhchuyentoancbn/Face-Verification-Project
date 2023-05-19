@@ -85,6 +85,7 @@ def main(args):
     train_loaders = dict()
     val_loaders = dict()
 
+    # Train and validation loaders for each task
     for task in range(num_tasks):
         # Get classes for this task
         task_classes = classes[task * num_classes_per_task: (task + 1) * num_classes_per_task]
@@ -178,15 +179,16 @@ def main(args):
                        batch_metrics=metrics, validate_per_batch=validate_per_batch, 
                        device=device, writer=writer, args=args)
 
+            # Evaluate on LFW
             if (epoch + 1) % args.eval_cycle == 0:
                 print('Validate on LFW')
                 lfw_accuracy = evaluate_lfw(resnet)
 
         writer.close()
-
         print(f'Task {task + 1} / {num_tasks} finished.')
         print('=' * 20)
 
+        # Evaluate on LFW
         if epochs % args.eval_cycle != 0:
             print('Validate on LFW')
             lfw_accuracy = evaluate_lfw(resnet)

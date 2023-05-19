@@ -5,6 +5,9 @@ from torchvision import datasets, transforms
 from config import *
 
 def preprocess_data(args):
+    """
+    Detect faces in CASIA dataset.
+    """
     batch_size = args.batch_size
     # Get MTCNN for face detection
     mtcnn = get_mtcnn()
