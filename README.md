@@ -26,7 +26,7 @@ pip install -r requirements.txt
 - [6] G. B. Huang, M. Ramesh, T. Berg, and E. Learned-Miller. Labeled faces in the wild: A database for studying face recognition in unconstrained environments. Technical Report 07-49, University of Massachusetts, Amherst, October 2007. 5  
 
 
-__Github repositorie:__
+__Github repositories:__
 
 - [faceNet-pytorch](https://github.com/timesler/facenet-pytorch)
 - [lr-momentum-scheduler](https://github.com/timesler/lr-momentum-scheduler)
