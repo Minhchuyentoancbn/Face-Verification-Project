@@ -6,7 +6,7 @@ import numpy as np
 from preprocess import preprocess_data
 from evaluate import evaluate_lfw
 from config import *
-from lr_scheduler import LambdaScheduler, RangeFinder, OneCyclePolicy
+from lr_scheduler import LambdaScheduler
 from utils import get_device, seed_everything, weights_init, accuracy, BatchTimer, pass_epoch
 
 import torch
@@ -20,25 +20,26 @@ from facenet_pytorch import InceptionResnetV1, fixed_image_standardization
 
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
+    parser.add_argument('--num_tasks', type=int, default=10, help='Number of tasks to split the dataset')
     parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
     parser.add_argument('--epochs', type=int, default=5, help='Number of epochs')
     parser.add_argument('--optimizer', type=str, default='sgd', help='Optimizer types: {sgd, adam}')
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
-    parser.add_argument('--num_tasks', type=int, default=10, help='Number of tasks to split the dataset')
     parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
     parser.add_argument('--weight_decay', type=float, default=0.0, help='Weight decay')
-    parser.add_argument('--smooth', type=float, default=0.0, help='Label smoothing')
     parser.add_argument('--dropout', type=float, default=0.2, help='Dropout probability for last fully connected layer')
+    # parser.add_argument('--min_lr', type=float, default=0.0, help='Minimum learning rate for LearningRateRangeTest')
+    # parser.add_argument('--max_lr', type=float, default=0.0, help='Maximum learning rate for LearningRateRangeTest')
+    parser.add_argument('--smooth', type=float, default=0.0, help='Label smoothing')
     parser.add_argument('--triplet', type=bool, default=False, help='Use triplet loss')
     parser.add_argument('--margin', type=float, default=0.3, help='Margin for triplet loss')
+    parser.add_argument('--beta', type=float, default=0.2, help='Alpha for triplet loss')
     parser.add_argument('--eval_cycle', type=int, default=20, help='Evaluate every n epochs')
     parser.add_argument('--valid_batch', type=bool, default=False, help='Whether to validate on batch or epoch')
     parser.add_argument('--batch_eval_cycle', type=int, default=5, help='Evaluate every n batches if valid_batch is True')
-    parser.add_argument('--min_lr', type=float, default=0.0, help='Minimum learning rate for OneCyclePolicy')
-    parser.add_argument('--max_lr', type=float, default=0.0, help='Maximum learning rate for OneCyclePolicy')
+    parser.add_argument('--step_size', type=int, default=1, help='Step size for LR scheduler')
     parser.add_argument('--clip', type=bool, default=False, help='Whether to clip gradients')
     parser.add_argument('--clip_value', type=float, default=0.0, help='Value to clip gradients')
-    parser.add_argument('--step_size', type=int, default=1, help='Step size for LR scheduler')
     args = parser.parse_args(argv)
     return args
 
@@ -155,21 +156,7 @@ def main(args):
         elif args.optimizer == 'adam':
             optimizer = optim.Adam(resnet.parameters(), lr=lr_init, weight_decay=args.weight_decay, eps=0.1)
 
-        # def lambda_rule(step):
-        #     if step < 13:
-        #         return 1#(step + 1) / 10
-        #     elif step < 33:
-        #         return 0.1
-        #     elif step < 43:
-        #         return 0.1
-        #     else:
-        #         return 0.01
-        # scheduler = LambdaLR(optimizer, lr_lambda=lambda_rule)
-        # if args.valid_batch:
-        #     scheduler = RangeFinder(optimizer, epochs=len(train_loader) // args.batch_eval_cycle * args.epochs, min_lr=args.min_lr, max_lr=args.max_lr)
-        # else:
-        #     scheduler = RangeFinder(optimizer, epochs=args.epochs // args.step_size, min_lr=args.min_lr, max_lr=args.max_lr)
-        # scheduler = RangeFinder(optimizer, epochs=400)
+        scheduler = LambdaScheduler(optimizer, lr_lambda=lr_update_rule)
 
         writer = SummaryWriter(LOG_DIR + '1task', comment=f'task{task}_{args.optimizer}_lr{lr_init}_bs{batch_size}_epochs{epochs}_momentum{args.momentum}_weight_decay{args.weight_decay}')
         writer.iteration = 0
@@ -189,9 +176,9 @@ def main(args):
                        batch_metrics=metrics, validate_per_batch=validate_per_batch, 
                        device=device, writer=writer, args=args)
 
-            # if not validate_per_batch:
-            #     if (epoch + 1) % args.step_size == 0:
-            #         scheduler.step()
+            if not validate_per_batch:
+                if (epoch + 1) % args.step_size == 0:
+                    scheduler.step()
 
             # Evaluate on LFW
             if (epoch + 1) % args.eval_cycle == 0:
@@ -212,7 +199,7 @@ def main(args):
             torch.save(resnet.state_dict(), f'./trained_models/task{task + 1}_resnet.pth')
         else:
             torch.save(resnet.state_dict(), f'./trained_models/resnet.pth')
-        
+
         break
 
 

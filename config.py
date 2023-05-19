@@ -14,3 +14,10 @@ LOG_DIR = 'runs/'
 # casia_cropped_path = os.path.join(DATA_PATH, 'CASIA-WebFace-cropped/')
 # casia_cropped_path = '/kaggle/input/casia-webface-cropped-with-mtcnn/CASIA-WebFace-cropped'
 casia_cropped_path = '/kaggle/input/casia-webface-mtcnn-v2/CASIA-WebFace-cropped'
+
+
+def lr_update_rule(step):
+    if step < 20:
+        return 1#(step + 1) / 10
+    else:
+        return 0.1
