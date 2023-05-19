@@ -4,6 +4,7 @@ import os
 import numpy as np
 
 from preprocess import preprocess_data
+from addition_loss import CenterLoss
 from evaluate import evaluate_lfw
 from config import *
 from utils import get_device, seed_everything, weights_init, accuracy, BatchTimer, pass_epoch
@@ -77,6 +78,10 @@ def main(args):
         'accuracy': accuracy,
         'fps': BatchTimer()
     }
+
+    if args.center:
+        center_loss_fn = CenterLoss(num_classes, num_classes_per_task).to(device)
+
 
     #######################################
     # Define dataset, and dataloader
@@ -157,7 +162,6 @@ def main(args):
             optimizer = optim.SGD(resnet.parameters(), lr=lr_init, momentum=args.momentum, weight_decay=args.weight_decay)
         elif args.optimizer == 'adam':
             optimizer = optim.Adam(resnet.parameters(), lr=lr_init, weight_decay=args.weight_decay, eps=0.1)
-
         scheduler = LambdaLR(optimizer, lr_lambda=lr_update_rule)
 
         writer = SummaryWriter(LOG_DIR + '1task', comment=f'task{task}_{args.optimizer}_lr{lr_init}_bs{batch_size}_epochs{epochs}_momentum{args.momentum}_weight_decay{args.weight_decay}')
@@ -186,6 +190,11 @@ def main(args):
             if (epoch + 1) % args.eval_cycle == 0:
                 print('Validate on LFW')
                 lfw_accuracy = evaluate_lfw(resnet)
+
+            # Change momentum
+            if (epoch + 1) == 15 and args.optimizer == 'sgd':
+                for param_group in optimizer.param_groups:
+                    param_group['momentum'] = 0.8
 
         writer.close()
         print(f'Task {task + 1} / {num_tasks} finished.')
