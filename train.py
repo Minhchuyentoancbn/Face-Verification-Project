@@ -194,7 +194,7 @@ def main(args):
             # Change momentum
             if (epoch + 1) == 15 and args.optimizer == 'sgd':
                 for param_group in optimizer.param_groups:
-                    param_group['momentum'] = MIN_MOMENTUM
+                    param_group['momentum'] = MAX_MOMENTUM
 
         writer.close()
         print(f'Task {task + 1} / {num_tasks} finished.')
