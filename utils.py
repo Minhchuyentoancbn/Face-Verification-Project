@@ -178,12 +178,12 @@ def pass_epoch(
     train_loader: torch.utils.data.DataLoader,
     valid_loader: torch.utils.data.DataLoader,
     optimizer: torch.optim.Optimizer=None, 
-    scheduler: torch.optim.lr_scheduler._LRScheduler=None,
     batch_metrics: dict={'time': BatchTimer()},
-    validate_per_batch: bool=False,
     device='gpu', 
     writer=None,
-    args=None
+    args=None,
+    center_loss_fn:nn.Module=None, 
+    optimizer_center: torch.optim.Optimizer=None,
 ):
     """
     rain over a data epoch.
@@ -205,16 +205,10 @@ def pass_epoch(
     optimizer: torch.optim.Optimizer
         A pytorch optimizer.
 
-    scheduler: torch.optim.lr_scheduler._LRScheduler
-        LR scheduler (default: {None})
-
     batch_metrics: dict 
         Dictionary of metric functions to call on each batch. The default
         is a simple timer. A progressive average of these metrics, along with the average
         loss, is printed every batch. (default: {{'time': iter_timer()}})
-
-    validate_per_batch: bool
-        Whether to calculate validation metrics every batch or every epoch. (default: {False})
 
     device: str or torch.device
         Device for pytorch to use. (default: {'cpu'})
@@ -224,7 +218,13 @@ def pass_epoch(
     
     args: argparse.ArgumentParser
         Command line arguments. (default: {None})
-        
+    
+    center_loss_fn: nn.Module
+        Center loss function. (default: {None})
+
+    optimizer_center: torch.optim.Optimizer
+        Optimizer for center loss. (default: {None})
+    
     Returns:
     -------
     tuple(torch.Tensor, dict) 
@@ -236,6 +236,8 @@ def pass_epoch(
     if mode == 'Valid':
         model.train()
         mode = 'Train'
+        if args.center:
+            center_loss_fn.train()
 
     logger = Logger(mode, length=len(train_loader), calculate_mean=True)
     loss = 0
@@ -253,6 +255,11 @@ def pass_epoch(
         if args.triplet:
             loss_batch += triplet_loss(linear, y, margin=args.margin)
 
+        # Center loss
+        if args.center:
+            loss_batch += args.beta * center_loss_fn(linear, y)
+            optimizer_center.zero_grad()
+
         # Backward pass
         optimizer.zero_grad()
         loss_batch.backward()
@@ -260,6 +267,10 @@ def pass_epoch(
         if args.clip:
             nn.utils.clip_grad_norm_(model.parameters(), args.clip_value)
         optimizer.step()
+        if args.center:
+            for param in center_loss_fn.parameters():
+                param.grad.data *= (1. / args.beta)
+            optimizer_center.step()
 
         loss_batch = loss_batch.detach().cpu()
         loss += loss_batch.item()
@@ -271,34 +282,17 @@ def pass_epoch(
             metrics[metric_name] = metrics.get(metric_name, 0) + metrics_batch[metric_name]
         logger(loss, metrics, i_batch)
 
-        # Validation per batch
-        if validate_per_batch and i_batch % args.batch_eval_cycle == 0:
-            print(f'Lr: {optimizer.param_groups[0]["lr"]:0.6f}')
-            if scheduler is not None:
-                scheduler.step()
-            validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args)
-
-            # Log to tensorboard
-            if writer is not None:
-                writer.add_scalars('loss', {mode: loss / (i_batch + 1)}, writer.iteration)
-                for metric_name, metric in metrics.items():
-                    writer.add_scalars(metric_name, {mode: metric / (i_batch + 1)})
-                if optimizer is not None:
-                    writer.add_scalars('lr', {mode: optimizer.param_groups[0]['lr']}, writer.iteration)
-
-
     # Validation per epoch
-    if not validate_per_batch:
-        print(f'Lr: {optimizer.param_groups[0]["lr"]:0.6f}')
-        validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args)
+    print(f'Lr: {optimizer.param_groups[0]["lr"]:0.6f}')
+    validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args, center_loss_fn)
 
-        # Log to tensorboard
-        if writer is not None:
-            writer.add_scalars('loss', {mode: loss / (i_batch + 1)}, writer.iteration)
-            for metric_name, metric in metrics.items():
-                writer.add_scalars(metric_name, {mode: metric / (i_batch + 1)})
-            if optimizer is not None:
-                writer.add_scalars('lr', {mode: optimizer.param_groups[0]['lr']}, writer.iteration)
+    # Log to tensorboard
+    if writer is not None:
+        writer.add_scalars('loss', {mode: loss / (i_batch + 1)}, writer.iteration)
+        for metric_name, metric in metrics.items():
+            writer.add_scalars(metric_name, {mode: metric / (i_batch + 1)})
+        if optimizer is not None:
+            writer.add_scalars('lr', {mode: optimizer.param_groups[0]['lr']}, writer.iteration)
 
     # Free intermediate variables
     del x, y, y_pred, loss_batch, metrics_batch, linear
@@ -313,7 +307,8 @@ def validate(
     device='gpu', 
     writer=None,
     optimizer=None,
-    args=None
+    args=None,
+    center_loss_fn:nn.Module=None
 ):
     """
     Evaluate over a data loader
@@ -345,6 +340,9 @@ def validate(
     
     args: argparse.ArgumentParser
         Command line arguments. (default: {None})
+
+    center_loss_fn: nn.Module
+        Center loss function. (default: {None})
     Returns:
     -------
     tuple(torch.Tensor, dict) 
@@ -354,6 +352,8 @@ def validate(
     mode = 'Train' if model.training else 'Valid'
     if mode == 'Train':
         model.eval()
+        if args.center:
+            center_loss_fn.eval()
         mode = 'Valid'
 
     loss = 0
@@ -372,6 +372,11 @@ def validate(
         # Triplet loss
         if args.triplet:
             loss_batch += triplet_loss(linear, y, margin=args.margin)
+
+        # Center loss
+        if args.center:
+            with torch.no_grad():
+                loss_batch += args.beta * center_loss_fn(linear, y)
 
         loss_batch = loss_batch.detach().cpu()
         loss += loss_batch.item()

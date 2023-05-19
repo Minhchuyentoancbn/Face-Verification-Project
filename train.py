@@ -36,10 +36,9 @@ def parse_arguments(argv):
     parser.add_argument('--margin', type=float, default=0.3, help='Margin for triplet loss')
     parser.add_argument('--center', type=bool, default=False, help='Use center loss')
     parser.add_argument('--beta', type=float, default= 0.0005, help='Beta for center loss')
+    parser.add_argument('--center_lr', type=float, default=0.5, help='Learning rate for center loss')
 
     parser.add_argument('--eval_cycle', type=int, default=20, help='Evaluate every n epochs')
-    parser.add_argument('--valid_batch', type=bool, default=False, help='Whether to validate on batch or epoch')
-    parser.add_argument('--batch_eval_cycle', type=int, default=5, help='Evaluate every n batches if valid_batch is True')
     parser.add_argument('--step_size', type=int, default=1, help='Step size for LR scheduler')
     parser.add_argument('--clip', type=bool, default=False, help='Whether to clip gradients')
     parser.add_argument('--clip_value', type=float, default=0.0, help='Value to clip gradients')
@@ -81,7 +80,10 @@ def main(args):
 
     if args.center:
         center_loss_fn = CenterLoss(num_classes, num_classes_per_task).to(device)
-
+        optimizer_center = optim.SGD(center_loss_fn.parameters(), lr=args.center_lr)
+    else:
+        center_loss_fn = None
+        optimizer_center = None
 
     #######################################
     # Define dataset, and dataloader
@@ -166,25 +168,21 @@ def main(args):
 
         writer = SummaryWriter(LOG_DIR + '1task', comment=f'task{task}_{args.optimizer}_lr{lr_init}_bs{batch_size}_epochs{epochs}_momentum{args.momentum}_weight_decay{args.weight_decay}')
         writer.iteration = 0
-
         print('Initial')
         print('=' * 10)
-        resnet.eval()
-
 
         for epoch in range(epochs):
             print('\nEpoch {}/{}'.format(epoch + 1, epochs))
             print('=' * 10)
 
             # Train
-            validate_per_batch = args.valid_batch
-            pass_epoch(resnet, loss_fn, train_loader, val_loader, optimizer, scheduler,
-                       batch_metrics=metrics, validate_per_batch=validate_per_batch, 
-                       device=device, writer=writer, args=args)
+            pass_epoch(resnet, loss_fn, train_loader, val_loader, optimizer,
+                       batch_metrics=metrics, device=device, writer=writer, args=args,
+                       center_loss_fn=center_loss_fn, optimizer_center=optimizer_center
+                       )
 
-            if not validate_per_batch:
-                if (epoch + 1) % args.step_size == 0:
-                    scheduler.step()
+            if (epoch + 1) % args.step_size == 0:
+                scheduler.step()
 
             # Evaluate on LFW
             if (epoch + 1) % args.eval_cycle == 0:
