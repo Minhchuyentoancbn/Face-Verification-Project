@@ -289,7 +289,6 @@ def pass_epoch(
     # Validation per epoch
     if not validate_per_batch:
         print(f'Lr: {optimizer.param_groups[0]["lr"]:0.6f}')
-        scheduler.step()
         validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args)
 
         # Log to tensorboard

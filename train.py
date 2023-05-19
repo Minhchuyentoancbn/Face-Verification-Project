@@ -38,6 +38,7 @@ def parse_arguments(argv):
     parser.add_argument('--max_lr', type=float, default=0.0, help='Maximum learning rate for OneCyclePolicy')
     parser.add_argument('--clip', type=bool, default=False, help='Whether to clip gradients')
     parser.add_argument('--clip_value', type=float, default=0.0, help='Value to clip gradients')
+    parser.add_argument('--step_size', type=int, default=10, help='Step size for LR scheduler')
     args = parser.parse_args(argv)
     return args
 
@@ -188,6 +189,10 @@ def main(args):
                        batch_metrics=metrics, validate_per_batch=validate_per_batch, 
                        device=device, writer=writer, args=args)
 
+            if not validate_per_batch:
+                if (epoch + 1) % args.step_size == 0:
+                    scheduler.step()
+                    
             # Evaluate on LFW
             if (epoch + 1) % args.eval_cycle == 0:
                 print('Validate on LFW')
