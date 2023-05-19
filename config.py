@@ -20,5 +20,7 @@ MAX_MOMENTUM = 0.95
 def lr_update_rule(step):
     if step < 15:
         return 1#(step + 1) / 10
-    else:
+    elif step < 17:
         return 0.1
+    else:
+        return 0.01
