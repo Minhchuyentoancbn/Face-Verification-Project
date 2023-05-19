@@ -257,7 +257,8 @@ def pass_epoch(
         optimizer.zero_grad()
         loss_batch.backward()
         # Clip gradients
-        nn.utils.clip_grad_norm_(model.parameters(), args.clip)
+        if args.clip:
+            nn.utils.clip_grad_norm_(model.parameters(), args.clip_value)
         optimizer.step()
 
         loss_batch = loss_batch.detach().cpu()

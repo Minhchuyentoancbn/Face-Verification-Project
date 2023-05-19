@@ -36,7 +36,8 @@ def parse_arguments(argv):
     parser.add_argument('--batch_eval_cycle', type=int, default=5, help='Evaluate every n batches if valid_batch is True')
     parser.add_argument('--min_lr', type=float, default=0.0, help='Minimum learning rate for OneCyclePolicy')
     parser.add_argument('--max_lr', type=float, default=0.0, help='Maximum learning rate for OneCyclePolicy')
-    parser.add_argument('--clip', type=float, default=0.0, help='Gradient clipping')
+    parser.add_argument('--clip', type=bool, default=False, help='Whether to clip gradients')
+    parser.add_argument('--clip_value', type=float, default=0.0, help='Value to clip gradients')
     args = parser.parse_args(argv)
     return args
 
