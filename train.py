@@ -165,10 +165,10 @@ def main(args):
         #     else:
         #         return 0.01
         # scheduler = LambdaLR(optimizer, lr_lambda=lambda_rule)
-        if args.valid_batch:
-            scheduler = RangeFinder(optimizer, epochs=len(train_loader) // args.batch_eval_cycle * args.epochs, min_lr=args.min_lr, max_lr=args.max_lr)
-        else:
-            scheduler = RangeFinder(optimizer, epochs=args.epochs // args.step_size, min_lr=args.min_lr, max_lr=args.max_lr)
+        # if args.valid_batch:
+        #     scheduler = RangeFinder(optimizer, epochs=len(train_loader) // args.batch_eval_cycle * args.epochs, min_lr=args.min_lr, max_lr=args.max_lr)
+        # else:
+        #     scheduler = RangeFinder(optimizer, epochs=args.epochs // args.step_size, min_lr=args.min_lr, max_lr=args.max_lr)
         # scheduler = RangeFinder(optimizer, epochs=400)
 
         writer = SummaryWriter(LOG_DIR + '1task', comment=f'task{task}_{args.optimizer}_lr{lr_init}_bs{batch_size}_epochs{epochs}_momentum{args.momentum}_weight_decay{args.weight_decay}')
@@ -185,7 +185,7 @@ def main(args):
 
             # Train
             validate_per_batch = args.valid_batch
-            pass_epoch(resnet, loss_fn, train_loader, val_loader, optimizer, scheduler, 
+            pass_epoch(resnet, loss_fn, train_loader, val_loader, optimizer,
                        batch_metrics=metrics, validate_per_batch=validate_per_batch, 
                        device=device, writer=writer, args=args)
 
