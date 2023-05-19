@@ -46,4 +46,5 @@ def get_mtcnn(
 
 
 def get_facenet() -> torch.nn.Module:
-    return InceptionResnetV1(pretrained='vggface2')
+    device = get_device()
+    return InceptionResnetV1(pretrained='vggface2', device=device).eval()
