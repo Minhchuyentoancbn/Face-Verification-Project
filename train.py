@@ -189,9 +189,9 @@ def main(args):
                        batch_metrics=metrics, validate_per_batch=validate_per_batch, 
                        device=device, writer=writer, args=args)
 
-            if not validate_per_batch:
-                if (epoch + 1) % args.step_size == 0:
-                    scheduler.step()
+            # if not validate_per_batch:
+            #     if (epoch + 1) % args.step_size == 0:
+            #         scheduler.step()
 
             # Evaluate on LFW
             if (epoch + 1) % args.eval_cycle == 0:
