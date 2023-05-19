@@ -27,6 +27,7 @@ def parse_arguments(argv):
     parser.add_argument('--optimizer', type=str, default='sgd', help='Optimizer types: {sgd, adam}')
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
     parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
+    parser.add_argument('--max_momentum', type=float, default=0.99, help='Maximum momentum')
     parser.add_argument('--weight_decay', type=float, default=0.0, help='Weight decay')
     parser.add_argument('--dropout', type=float, default=0.2, help='Dropout probability for last fully connected layer')
     # parser.add_argument('--min_lr', type=float, default=0.0, help='Minimum learning rate for LearningRateRangeTest')
@@ -192,7 +193,7 @@ def main(args):
             # Change momentum
             if (epoch + 1) == 15 and args.optimizer == 'sgd':
                 for param_group in optimizer.param_groups:
-                    param_group['momentum'] = MAX_MOMENTUM
+                    param_group['momentum'] = args.max_momentum
 
         writer.close()
         print(f'Task {task + 1} / {num_tasks} finished.')
