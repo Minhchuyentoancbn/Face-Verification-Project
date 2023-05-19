@@ -29,4 +29,3 @@ pip install -r requirements.txt
 __Github repositories:__
 
 - [faceNet-pytorch](https://github.com/timesler/facenet-pytorch)
-- [lr-momentum-scheduler](https://github.com/timesler/lr-momentum-scheduler)

@@ -1,7 +1,7 @@
 import os
 import time
 import numpy as np
-from triplet_loss import triplet_loss
+from addition_loss import triplet_loss
 
 import torch
 import torch.nn as nn

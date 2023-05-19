@@ -6,13 +6,13 @@ import numpy as np
 from preprocess import preprocess_data
 from evaluate import evaluate_lfw
 from config import *
-from lr_scheduler import LambdaScheduler
 from utils import get_device, seed_everything, weights_init, accuracy, BatchTimer, pass_epoch
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, Subset
+from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.tensorboard import SummaryWriter
 from torchvision import datasets, transforms
 from facenet_pytorch import InceptionResnetV1, fixed_image_standardization
@@ -33,7 +33,9 @@ def parse_arguments(argv):
     parser.add_argument('--smooth', type=float, default=0.0, help='Label smoothing')
     parser.add_argument('--triplet', type=bool, default=False, help='Use triplet loss')
     parser.add_argument('--margin', type=float, default=0.3, help='Margin for triplet loss')
-    parser.add_argument('--beta', type=float, default=0.2, help='Alpha for triplet loss')
+    parser.add_argument('--center', type=bool, default=False, help='Use center loss')
+    parser.add_argument('--beta', type=float, default= 0.0005, help='Beta for center loss')
+
     parser.add_argument('--eval_cycle', type=int, default=20, help='Evaluate every n epochs')
     parser.add_argument('--valid_batch', type=bool, default=False, help='Whether to validate on batch or epoch')
     parser.add_argument('--batch_eval_cycle', type=int, default=5, help='Evaluate every n batches if valid_batch is True')
@@ -156,7 +158,7 @@ def main(args):
         elif args.optimizer == 'adam':
             optimizer = optim.Adam(resnet.parameters(), lr=lr_init, weight_decay=args.weight_decay, eps=0.1)
 
-        scheduler = LambdaScheduler(optimizer, lr_lambda=lr_update_rule)
+        scheduler = LambdaLR(optimizer, lr_lambda=lr_update_rule)
 
         writer = SummaryWriter(LOG_DIR + '1task', comment=f'task{task}_{args.optimizer}_lr{lr_init}_bs{batch_size}_epochs{epochs}_momentum{args.momentum}_weight_decay{args.weight_decay}')
         writer.iteration = 0
@@ -172,7 +174,7 @@ def main(args):
 
             # Train
             validate_per_batch = args.valid_batch
-            pass_epoch(resnet, loss_fn, train_loader, val_loader, optimizer,
+            pass_epoch(resnet, loss_fn, train_loader, val_loader, optimizer, scheduler,
                        batch_metrics=metrics, validate_per_batch=validate_per_batch, 
                        device=device, writer=writer, args=args)
 
