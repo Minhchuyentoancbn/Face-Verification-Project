@@ -38,7 +38,7 @@ def parse_arguments(argv):
     parser.add_argument('--max_lr', type=float, default=0.0, help='Maximum learning rate for OneCyclePolicy')
     parser.add_argument('--clip', type=bool, default=False, help='Whether to clip gradients')
     parser.add_argument('--clip_value', type=float, default=0.0, help='Value to clip gradients')
-    parser.add_argument('--step_size', type=int, default=10, help='Step size for LR scheduler')
+    parser.add_argument('--step_size', type=int, default=1, help='Step size for LR scheduler')
     args = parser.parse_args(argv)
     return args
 
@@ -168,7 +168,7 @@ def main(args):
         if args.valid_batch:
             scheduler = RangeFinder(optimizer, epochs=len(train_loader) // args.batch_eval_cycle * args.epochs, min_lr=args.min_lr, max_lr=args.max_lr)
         else:
-            scheduler = RangeFinder(optimizer, epochs=args.epochs, min_lr=args.min_lr, max_lr=args.max_lr)
+            scheduler = RangeFinder(optimizer, epochs=args.epochs // args.step_size, min_lr=args.min_lr, max_lr=args.max_lr)
         # scheduler = RangeFinder(optimizer, epochs=400)
 
         writer = SummaryWriter(LOG_DIR + '1task', comment=f'task{task}_{args.optimizer}_lr{lr_init}_bs{batch_size}_epochs{epochs}_momentum{args.momentum}_weight_decay{args.weight_decay}')
@@ -192,7 +192,7 @@ def main(args):
             if not validate_per_batch:
                 if (epoch + 1) % args.step_size == 0:
                     scheduler.step()
-                    
+
             # Evaluate on LFW
             if (epoch + 1) % args.eval_cycle == 0:
                 print('Validate on LFW')
