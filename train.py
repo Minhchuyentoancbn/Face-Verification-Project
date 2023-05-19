@@ -111,10 +111,12 @@ def main(args):
         train_loader = DataLoader(
             train_set,
             batch_size=batch_size,
+            shuffle=True
         )
         val_loader = DataLoader(
             val_set,
-            batch_size=batch_size
+            batch_size=batch_size,
+            shuffle=False
         )
         train_loaders[task] = train_loader
         val_loaders[task] = val_loader
