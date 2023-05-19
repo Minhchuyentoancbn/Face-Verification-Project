@@ -34,6 +34,8 @@ def parse_arguments(argv):
     parser.add_argument('--eval_cycle', type=int, default=20, help='Evaluate every n epochs')
     parser.add_argument('--valid_batch', type=bool, default=False, help='Whether to validate on batch or epoch')
     parser.add_argument('--batch_eval_cycle', type=int, default=5, help='Evaluate every n batches if valid_batch is True')
+    parser.add_argument('--min_lr', type=float, default=0.0, help='Minimum learning rate for OneCyclePolicy')
+    parser.add_argument('--max_lr', type=float, default=0.0, help='Maximum learning rate for OneCyclePolicy')
     args = parser.parse_args(argv)
     return args
 
@@ -160,7 +162,7 @@ def main(args):
         #     else:
         #         return 0.01
         # scheduler = LambdaLR(optimizer, lr_lambda=lambda_rule)
-        scheduler = RangeFinder(optimizer, epochs=len(train_loader) // args.batch_eval_cycle * args.epochs)
+        scheduler = RangeFinder(optimizer, epochs=len(train_loader) // args.batch_eval_cycle * args.epochs, min_lr=args.min_lr, max_lr=args.max_lr)
         # scheduler = RangeFinder(optimizer, epochs=400)
 
         writer = SummaryWriter(LOG_DIR + '1task', comment=f'task{task}_{args.optimizer}_lr{lr_init}_bs{batch_size}_epochs{epochs}_momentum{args.momentum}_weight_decay{args.weight_decay}')

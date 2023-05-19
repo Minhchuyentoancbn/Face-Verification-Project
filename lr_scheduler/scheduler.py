@@ -256,8 +256,9 @@ class RangeFinder(ListScheduler):
         >>>     scheduler.step()
     """
 
-    def __init__(self, optimizer, epochs):
-        lrs = np.logspace(-7, 0, epochs)
+    def __init__(self, optimizer, epochs, min_lr=1e-7, max_lr=1.0):
+        lrs = np.linspace(min_lr, max_lr, epochs)
+        # lrs = np.logspace(-7, 0, epochs)
         super().__init__(optimizer, lrs)
 
 
