@@ -34,7 +34,7 @@ def parse_arguments(argv):
     parser.add_argument('--smooth', type=float, default=0.0, help='Label smoothing')
     parser.add_argument('--triplet', type=bool, default=False, help='Use triplet loss')
     parser.add_argument('--margin', type=float, default=0.3, help='Margin for triplet loss')
-    parser.add_argument('alpha', type=float, default=1, help='Alpha for triplet loss')
+    parser.add_argument('--alpha', type=float, default=1, help='Alpha for triplet loss')
     parser.add_argument('--center', type=bool, default=False, help='Use center loss')
     parser.add_argument('--beta', type=float, default= 0.0005, help='Beta for center loss')
     parser.add_argument('--center_lr', type=float, default=0.5, help='Learning rate for center loss')
