@@ -225,7 +225,9 @@ def evaluate_lfw(model: nn.Module,
     embeddings_dict = dict(zip(crop_paths,embeddings))
     pairs = read_pairs(LFW_PAIRS_PATH)
 
-    path_list, issame_list = get_paths(LFW_PATH, pairs)
+    path_list = np.load('data/lfw/path_list.npy')
+    issame_list = np.load('data/lfw/issame_list.npy')
+    # path_list, issame_list = get_paths(LFW_PATH, pairs)
     embeddings = np.array([embeddings_dict[path] for path in path_list])
 
     tpr, fpr, accuracy, val, val_std, far, fp, fn = evaluate(embeddings, issame_list)
