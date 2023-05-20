@@ -191,11 +191,7 @@ def evaluate_lfw(model: nn.Module,
     """
     Evaluate the model on the LFW dataset
     """
-    crop_paths = []
-    for folder in os.listdir(LFW_PATH):
-        for file in os.listdir(os.path.join(LFW_PATH, folder)):
-            crop_paths.append(os.path.join(LFW_PATH, folder, file))
-    
+    crop_paths = np.load('data/lfw/crop_paths.npy')
     trans = transforms.Compose([
         np.float32,
         transforms.ToTensor(),
