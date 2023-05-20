@@ -1,5 +1,6 @@
 import torch
-from torch import nn
+import torch.nn as nn
+import torch.nn.functional as F
 
 def normalize(x, axis=-1):
     """Normalizing to unit length along the specified dimension.
@@ -89,8 +90,7 @@ def triplet_loss(embeddings, labels, margin):
     hardest_negative_dist = hardest_negative_dist[having_positive]
     
     # Combine biggest d(a, p) and smallest d(a, n) into final triplet loss
-    triplet_loss = (hardest_positive_dist - hardest_negative_dist + margin).clamp(min=0)
-    
+    triplet_loss = F.relu(hardest_positive_dist - hardest_negative_dist + margin)
     # Get final mean triplet loss
     triplet_loss = triplet_loss.mean()
     
