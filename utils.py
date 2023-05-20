@@ -253,7 +253,7 @@ def pass_epoch(
 
         # Triplet loss
         if args.triplet:
-            loss_batch += triplet_loss(linear, y, margin=args.margin)
+            loss_batch += triplet_loss(linear, y, margin=args.margin) * args.alpha
 
         # Center loss
         if args.center:
