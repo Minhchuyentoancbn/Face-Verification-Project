@@ -92,7 +92,7 @@ def triplet_loss(embeddings, labels, margin):
     # Combine biggest d(a, p) and smallest d(a, n) into final triplet loss
     triplet_loss = F.relu(hardest_positive_dist - hardest_negative_dist + margin)
     # Get final mean triplet loss
-    triplet_loss = triplet_loss / labels.size(0)
+    triplet_loss = triplet_loss.sum() / labels.size(0)
     
     return triplet_loss
 
