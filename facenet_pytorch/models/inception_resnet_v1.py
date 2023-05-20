@@ -255,7 +255,7 @@ class InceptionResnetV1(nn.Module):
         self.avgpool_1a = nn.AdaptiveAvgPool2d(1)
         self.dropout = nn.Dropout(dropout_prob)
         self.last_linear = nn.Linear(1792, 512, bias=False)
-        self.last_bn = nn.BatchNorm1d(512, eps=0.001, momentum=0.1, affine=True)
+        self.last_bn = nn.BatchNorm1d(512)
 
         if pretrained is not None:
             self.logits = nn.Linear(512, tmp_classes)
@@ -293,12 +293,12 @@ class InceptionResnetV1(nn.Module):
         x = self.block8(x)
         x = self.avgpool_1a(x)
         x = self.dropout(x)
-        x = self.last_linear(x.view(x.shape[0], -1))
-        feat = self.last_bn(x)
+        feat = self.last_linear(x.view(x.shape[0], -1))
+        x = self.last_bn(feat)
         if self.classify:
-            x = self.logits(feat)
+            x = self.logits(x)
         else:
-            x = F.normalize(feat, p=2, dim=1)
+            x = F.normalize(x, p=2, dim=1)
         return x, feat
 
 
