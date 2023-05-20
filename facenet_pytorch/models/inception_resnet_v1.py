@@ -293,13 +293,13 @@ class InceptionResnetV1(nn.Module):
         x = self.block8(x)
         x = self.avgpool_1a(x)
         x = self.dropout(x)
-        linear = self.last_linear(x.view(x.shape[0], -1))
-        x = self.last_bn(linear)
+        x = self.last_linear(x.view(x.shape[0], -1))
+        feat = self.last_bn(x)
         if self.classify:
-            x = self.logits(x)
+            x = self.logits(feat)
         else:
-            x = F.normalize(x, p=2, dim=1)
-        return x, linear
+            x = F.normalize(feat, p=2, dim=1)
+        return x, feat
 
 
 def load_weights(mdl, name):
