@@ -11,18 +11,18 @@ from app_services.verification_pb2_grpc import VerificationServiceStub
 
 def main():
     with grpc.insecure_channel('localhost:50051') as channel:
-        # stub = RegisterServiceStub(channel)
-        stub = IdentificationServiceStub(channel)
+        stub = RegisterServiceStub(channel)
+        # stub = IdentificationServiceStub(channel)
         # stub = VerificationServiceStub(channel)
         start = perf_counter()
-        # res: RegisterResponse = await stub.Register(RegisterRequest(user_id='test', video_path='data/test/WIN_20230517_10_37_23_Pro.mp4'))
-        res: IdentificationResponse = stub.Identify(IdentificationRequest(video_path='data/test/WIN_20230517_10_37_23_Pro.mp4'))
-        # res: VerificationResponse = await stub.Verify(VerificationRequest(user_id='test', video_path='data/test/WIN_20230517_10_37_23_Pro.mp4'))
+        res: RegisterResponse = stub.Register(RegisterRequest(user_id='test2', video_path='data/test/WIN_20230517_10_37_23_Pro.mp4'))
+        # res: IdentificationResponse = stub.Identify(IdentificationRequest(video_path='data/test/WIN_20230517_10_37_23_Pro.mp4'))
+        # res: VerificationResponse = stub.Verify(VerificationRequest(user_id='test', video_path='data/test/WIN_20230517_10_37_23_Pro.mp4'))
         end = perf_counter()
 
         # Change this to whatever response you want to see
         # or comment out the print statements
-        # print(f'Sucess: {res.success}')
+        print(f'Sucess: {res.success}')
         print(f'Time: {end - start}')
 
 if __name__ == '__main__':
