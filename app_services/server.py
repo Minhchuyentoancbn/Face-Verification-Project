@@ -1,4 +1,3 @@
-import asyncio
 import grpc
 from .services import register, verification, identification
 
@@ -12,31 +11,31 @@ from .verification_pb2 import VerificationRequest, VerificationResponse
 
 
 class RegisterService(RegisterServiceServicer):
-    async def Register(self, request: RegisterRequest, context) -> RegisterResponse:
+    def Register(self, request: RegisterRequest, context) -> RegisterResponse:
         print('Received Register request')
         print("RegisterService: Register")
         userid = request.user_id
         video_path = request.video_path
-        success = await register(video_path=video_path, userid=userid)
+        success = register(video_path=video_path, userid=userid)
         return RegisterResponse(success=success)
     
 
 class IdentificationService(IdentificationServiceServicer):
-    async def Identify(self, request: IdentificationRequest, context) -> IdentificationResponse:
+    def Identify(self, request: IdentificationRequest, context) -> IdentificationResponse:
         print('Received Identify request')
         print("IdentificationService: Identify")
         video_path = request.video_path
-        user_id = await identification(video_path=video_path)
+        user_id = identification(video_path=video_path)
         return IdentificationResponse(user_id=user_id)
     
     
 class VerificationService(VerificationServiceServicer):
-    async def Verify(self, request: VerificationRequest, context) -> VerificationResponse:
+    def Verify(self, request: VerificationRequest, context) -> VerificationResponse:
         print('Received Verify request')
         print("VerificationService: Verify")
         video_path = request.video_path
         user_id = request.user_id
-        verfied, similarity = await verification(video_path=video_path, userid=user_id)
+        verfied, similarity = verification(video_path=video_path, userid=user_id)
         return VerificationResponse(verified=verfied, similarity=similarity)
     
 

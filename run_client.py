@@ -1,4 +1,3 @@
-import asyncio
 import grpc
 from time import perf_counter
 
@@ -10,14 +9,14 @@ from app_services.verification_pb2 import VerificationRequest, VerificationRespo
 from app_services.verification_pb2_grpc import VerificationServiceStub
 
 
-async def main():
-    async with grpc.aio.insecure_channel('localhost:50051') as channel:
+def main():
+    with grpc.insecure_channel('localhost:50051') as channel:
         # stub = RegisterServiceStub(channel)
         stub = IdentificationServiceStub(channel)
         # stub = VerificationServiceStub(channel)
         start = perf_counter()
         # res: RegisterResponse = await stub.Register(RegisterRequest(user_id='test', video_path='data/test/WIN_20230517_10_37_23_Pro.mp4'))
-        res: IdentificationResponse = await stub.Identify(IdentificationRequest(video_path='data/test/WIN_20230517_10_37_23_Pro.mp4'))
+        res: IdentificationResponse = stub.Identify(IdentificationRequest(video_path='data/test/WIN_20230517_10_37_23_Pro.mp4'))
         # res: VerificationResponse = await stub.Verify(VerificationRequest(user_id='test', video_path='data/test/WIN_20230517_10_37_23_Pro.mp4'))
         end = perf_counter()
 
@@ -27,4 +26,4 @@ async def main():
         print(f'Time: {end - start}')
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    main()
