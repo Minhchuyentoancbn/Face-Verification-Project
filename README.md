@@ -4,13 +4,17 @@
 
 ## Project Description
 
-- __Goal__: Build a life-long face verification system that can learn new faces without forgetting the old ones and generalize well on new faces.
-- __Base architecture__: Inception Resnet V1
-- __Dataset__: LFW, CASIA-Webface
-- __Preprocessing__: MTCNN face detection and alignment [1]
-- __Evaluation__: Accuracy, VAL, FAR on LFW dataset using the unrestricted with labeled outside data protocol
-- __Training__: 
-    - __1 Task__: Use softmax loss, label smoothing to train the model
+__Goal__: Build a life-long face verification system that can learn new faces without forgetting the old ones and generalize well on new faces.
+
+__Base architecture__: Inception Resnet V1
+
+__Dataset__: LFW, CASIA-Webface
+
+__Preprocessing__: MTCNN face detection and alignment [1]
+
+ __Evaluation__: Accuracy, VAL, FAR on LFW dataset using the unrestricted with labeled outside data protocol
+
+ __Methods__: Softmax, Label smoothing, Triplet loss, Center loss, Adversarial training
 
 
 ## Setup environment
