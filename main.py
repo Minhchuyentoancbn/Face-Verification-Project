@@ -64,7 +64,7 @@ def main(args):
 
     # Define classes and tasks
     num_tasks = args.num_tasks
-    num_classes_per_task = num_classes // num_tasks
+    num_classes_per_task = np.ceil(num_classes / num_tasks).astype(int)
     if os.path.exists('./data/classes.npy'):
         classes = np.load('./data/classes.npy')
     else:
