@@ -39,10 +39,11 @@ def parse_arguments(argv):
     parser.add_argument('--beta', type=float, default= 0.0005, help='Beta for center loss')
     parser.add_argument('--center_lr', type=float, default=0.5, help='Learning rate for center loss')
 
-    parser.add_argument('--eval_cycle', type=int, default=20, help='Evaluate every n epochs')
-    parser.add_argument('--step_size', type=int, default=1, help='Step size for LR scheduler')
     parser.add_argument('--clip', type=bool, default=False, help='Whether to clip gradients')
     parser.add_argument('--clip_value', type=float, default=0.0, help='Value to clip gradients')
+    parser.add_argument('--eval_cycle', type=int, default=20, help='Evaluate every n epochs')
+    parser.add_argument('--step_size', type=int, default=1, help='Step size for LR scheduler')
+    parser.add_argument('--exp_name', type=str, default='1task', help='Experiment name')
     args = parser.parse_args(argv)
     return args
 
@@ -147,6 +148,10 @@ def main(args):
             torch.save(val_loaders[task], f'./data/val_loader.pth')
     #######################################
 
+    # Experiment name
+    if not os.path.exists(LOG_DIR + args.exp_name):
+        os.makedirs(LOG_DIR + args.exp_name)
+
     # Train
     for task in range(num_tasks):
         train_loader = train_loaders[task]
@@ -167,7 +172,7 @@ def main(args):
             optimizer = optim.Adam(resnet.parameters(), lr=lr_init, weight_decay=args.weight_decay, eps=0.1)
         scheduler = LambdaLR(optimizer, lr_lambda=lr_update_rule)
 
-        writer = SummaryWriter(LOG_DIR + '1task', comment=f'task{task}_{args.optimizer}_lr{lr_init}_bs{batch_size}_epochs{epochs}_momentum{args.momentum}_weight_decay{args.weight_decay}')
+        writer = SummaryWriter(LOG_DIR + args.exp_name, comment=f'task{task}_{args.optimizer}_lr{lr_init}_bs{batch_size}_epochs{epochs}_momentum{args.momentum}_weight_decay{args.weight_decay}')
         writer.iteration = 0
         print('Initial')
         print('=' * 10)
