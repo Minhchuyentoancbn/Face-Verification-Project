@@ -21,6 +21,7 @@ from facenet_pytorch import InceptionResnetV1, fixed_image_standardization
 
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
+    parser.add_argument('--preprocess', type=bool, default=False, help='Preprocess CASIA-Webface dataset')
     parser.add_argument('--num_tasks', type=int, default=10, help='Number of tasks to split the dataset')
     parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
     parser.add_argument('--epochs', type=int, default=5, help='Number of epochs')
@@ -218,10 +219,12 @@ if __name__ == '__main__':
     seed_everything(SEED)
     args = parse_arguments(sys.argv[1:])
 
-    # # Create data folders
-    # if not os.path.exists(casia_cropped_path):
-    #     os.makedirs(casia_cropped_path)
-    #     preprocess_data(args)
+    if args.preprocess:
+        # Create data folders
+        if not os.path.exists(casia_cropped_path):
+            os.makedirs(casia_cropped_path)
+        
+        preprocess_data(args)
 
     # Train the model
     main(args)
