@@ -80,7 +80,7 @@ def main(args):
     }
 
     if args.center:
-        center_loss_fn = CenterLoss(num_classes, num_classes_per_task).to(device)
+        center_loss_fn = CenterLoss(num_classes).to(device)
         optimizer_center = optim.SGD(center_loss_fn.parameters(), lr=args.center_lr)
     else:
         center_loss_fn = None
