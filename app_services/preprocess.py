@@ -4,17 +4,18 @@ import numpy as np
 from PIL import Image
 from utils import empty_folder
 from typing import List
+from models import get_mtcnn
 from config import *
 
 import torch
 import torch.nn as nn
 
+mtcnn = get_mtcnn()
 
 def process_video(
     path: str,
     save: bool = False,
-    prob_threshold: float = DETECTION_THRESHOLD,
-    mtcnn: nn.Module = None
+    prob_threshold: float = DETECTION_THRESHOLD
 ) -> List[torch.Tensor]:
     """
     Processes the video and saves the frames in the app_data/temp/picture folder
@@ -32,9 +33,6 @@ def process_video(
     prob_threshold : float, optional
         Probability threshold for face detection
 
-    mtcnn : nn.Module, optional
-        MTCNN model, by default None
-
     Returns
     -------
     List[torch.Tensor]
@@ -42,11 +40,6 @@ def process_video(
 
     """
     images_list = []
-
-    # Check the parameters
-    if mtcnn is None:
-        print("Please provide MTCNN model")
-        return []
 
     # Empty the app_data/temp/picture and app_data/temp/cropped folders
     empty_folder("app_data/temp/picture")

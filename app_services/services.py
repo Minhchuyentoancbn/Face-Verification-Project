@@ -3,15 +3,19 @@ import os
 from .preprocess import process_video
 from utils import get_device
 from config import *
+from models import get_facenet
 
 import torch
+
+
+facenet = get_facenet()
+device = get_device()
+
 
 def register(
     video_path: str,
     userid: str,
-    prob_threshold: float = DETECTION_THRESHOLD,
-    mtcnn: torch.nn.Module = None,
-    facenet: torch.nn.Module = None
+    prob_threshold: float = DETECTION_THRESHOLD
 ) -> bool:
     """
     Save the embedding tensor and threshold value for userid
@@ -27,34 +31,20 @@ def register(
     prob_threshold : float, optional
         Probability threshold for face detection, by default 0.99
 
-    mtcnn : torch.nn.Module, optional
-        MTCNN model, by default None
-
-    facenet : torch.nn.Module, optional
-        Facenet model, by default None
-
     Returns
     -------
     bool
         Whether the user is registered or not
     """
     # Check the parameters
-    if facenet is None:
-        print("Please provide Facenet model")
-        return False
-
     images = process_video(
         video_path,  
-        prob_threshold=prob_threshold,
-        mtcnn=mtcnn
+        prob_threshold=prob_threshold
     )
 
     if len(images) == 0:
         print("No faces found in the video")
         return False
-
-    # Get the device
-    device = get_device()
 
     # Check if the app_data/database/userid folder exists
     if not os.path.exists(f"app_data/database/{userid}"):
@@ -62,7 +52,6 @@ def register(
 
     # compute the mean of the images in the cropped folder
     images = torch.stack(images).float().to(device)
-    facenet = facenet.eval().to(device)
     embeddings, _ = facenet(images)
     embeddings = embeddings.detach().cpu()
 
@@ -80,8 +69,6 @@ def register(
 def verification(
     userid: str,
     video_path: str,
-    mtcnn: torch.nn.Module,
-    facenet: torch.nn.Module,
     prob_threshold: float = DETECTION_THRESHOLD,
     threshold: float = VERIFICATION_THRESHOLD
 ):
@@ -95,12 +82,6 @@ def verification(
 
     video_path : str
         Path to the video file
-
-    mtcnn : torch.nn.Module
-        MTCNN model
-
-    facenet : torch.nn.Module
-        Facenet model
 
     prob_threshold : float, optional
         Probability threshold for face detection
@@ -116,9 +97,6 @@ def verification(
     similarity : float
         Cosine similarity between the user's embeddings and the embeddings of the images in the video
     """
-    # Set the device
-    device = get_device()
-    facenet = facenet.eval().to(device)
 
     # Check if the app_data/database/userid folder exists
     if not os.path.exists(f"app_data/database/{userid}"):
@@ -128,8 +106,7 @@ def verification(
     # Get the images from the video
     images = process_video(
         video_path,
-        prob_threshold=prob_threshold,
-        mtcnn=mtcnn
+        prob_threshold=prob_threshold
     )
 
     if len(images) == 0:
@@ -159,8 +136,6 @@ def verification(
 
 def identification(
     video_path: str,
-    mtcnn: torch.nn.Module,
-    facenet: torch.nn.Module,
     prob_threshold: float = DETECTION_THRESHOLD,
     threshold: float = VERIFICATION_THRESHOLD
 ):
@@ -171,12 +146,6 @@ def identification(
     ----------
     video_path : str
         Path to the video file
-
-    mtcnn : torch.nn.Module
-        MTCNN model
-
-    facenet : torch.nn.Module
-        Facenet model
 
     prob_threshold : float, optional
         Probability threshold for face detection
@@ -192,16 +161,11 @@ def identification(
 
     user_list = os.listdir("app_data/database")
     user_similarity = dict()
-    
-    # Set the device
-    device = get_device()
-    facenet = facenet.eval().to(device)
 
     # Get the images from the video
     images = process_video(
         video_path,
-        prob_threshold=prob_threshold,
-        mtcnn=mtcnn
+        prob_threshold=prob_threshold
     )
 
     if len(images) == 0:

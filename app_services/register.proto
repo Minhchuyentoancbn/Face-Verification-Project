@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+message RegisterRequest {
+    string user_id = 1;
+    string video_path = 2;
+}
+
+message RegisterResponse {
+    bool success = 1;
+}
+
+service RegisterService {
+    rpc Register(RegisterRequest) returns (RegisterResponse);
+}

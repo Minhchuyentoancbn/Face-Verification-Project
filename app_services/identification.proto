@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+message IdentificationRequest {
+    string video_path = 1;
+}
+
+message IdentificationResponse {
+    string user_id = 1;
+}
+
+service IdentificationService {
+    rpc Identify(IdentificationRequest) returns (IdentificationResponse);
+}

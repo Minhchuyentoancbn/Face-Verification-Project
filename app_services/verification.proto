@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+message VerificationRequest {
+    string user_id = 1;
+    string video_path = 2;
+}
+
+message VerificationResponse {
+    bool verified = 1;
+    float similarity = 2;
+}
+
+service VerificationService {
+    rpc Verify(VerificationRequest) returns (VerificationResponse);
+}
