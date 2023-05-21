@@ -32,7 +32,46 @@ pip install -r requirements.txt
 __Arguments:__
 
 ```
+usage: main.py [-h] [--seed SEED] [--preprocess PREPROCESS] [--num_tasks NUM_TASKS] [--batch_size BATCH_SIZE] [--epochs EPOCHS] [--optimizer OPTIMIZER]
+               [--lr LR] [--momentum MOMENTUM] [--weight_decay WEIGHT_DECAY] [--dropout DROPOUT] [--smooth SMOOTH] [--triplet TRIPLET] [--margin MARGIN]
+               [--alpha ALPHA] [--center CENTER] [--beta BETA] [--center_lr CENTER_LR] [--adv ADV] [--eps EPS] [--clip CLIP] [--clip_value CLIP_VALUE]
+               [--eval_cycle EVAL_CYCLE] [--step_size STEP_SIZE] [--exp_name EXP_NAME]
 
+options:
+  -h, --help            show this help message and exit
+  --seed SEED           Random seed
+  --preprocess PREPROCESS
+                        Preprocess CASIA-Webface dataset
+  --num_tasks NUM_TASKS
+                        Number of tasks to split the dataset
+  --batch_size BATCH_SIZE
+                        Batch size
+  --epochs EPOCHS       Number of epochs
+  --optimizer OPTIMIZER
+                        Optimizer types: {sgd, adam}
+  --lr LR               Learning rate
+  --momentum MOMENTUM   Momentum
+  --weight_decay WEIGHT_DECAY
+                        Weight decay
+  --dropout DROPOUT     Dropout probability for last fully connected layer
+  --smooth SMOOTH       Label smoothing
+  --triplet TRIPLET     Use triplet loss
+  --margin MARGIN       Margin for triplet loss
+  --alpha ALPHA         Alpha for triplet loss
+  --center CENTER       Use center loss
+  --beta BETA           Beta for center loss
+  --center_lr CENTER_LR
+                        Learning rate for center loss
+  --adv ADV             Use adversarial training
+  --eps EPS             Epsilon for adversarial training
+  --clip CLIP           Whether to clip gradients
+  --clip_value CLIP_VALUE
+                        Value to clip gradients
+  --eval_cycle EVAL_CYCLE
+                        Evaluate every n epochs
+  --step_size STEP_SIZE
+                        Step size for LR scheduler
+  --exp_name EXP_NAME   Experiment name
 ```
 
 
@@ -93,4 +132,5 @@ _[6] G. B. Huang, M. Ramesh, T. Berg, and E. Learned-Miller. Labeled faces in th
 
 __Github repositories:__
 
-[faceNet-pytorch](https://github.com/timesler/facenet-pytorch)
+- [faceNet-pytorch](https://github.com/timesler/facenet-pytorch)
+- [adversarial-attacks-pytorch](https://github.com/Harry24k/adversarial-attacks-pytorch)
