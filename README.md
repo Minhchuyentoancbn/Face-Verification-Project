@@ -61,7 +61,7 @@ python main.py --num_tasks 1 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.
 ## Results on LFW
 
 | Method | Accuracy | VAL | FAR |
-| :---: | :---: | :---: | :---: |
+| --- | --- | --- | --- |
 | Baseline | 0.96816 | 0.755 | 0.00133 |
 | Baseline + Label smoothing | 0.97349 | 0.82733 | 0.00133 |
 | Baseline + Label smoothing + Triplet Loss + Center Loss | 0.97333 | 0.852 | 0.00133 |
