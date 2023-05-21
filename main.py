@@ -45,7 +45,7 @@ def parse_arguments(argv):
     parser.add_argument('--center_lr', type=float, default=0.5, help='Learning rate for center loss')
 
     parser.add_argument('--adv', type=bool, default=False, help='Use adversarial training')
-    parser.add_argument('--eps', type=float, default=8/255, help='Epsilon for adversarial training')
+    parser.add_argument('--eps', type=float, default=8/128, help='Epsilon for adversarial training')
 
     parser.add_argument('--clip', type=bool, default=False, help='Whether to clip gradients')
     parser.add_argument('--clip_value', type=float, default=0.0, help='Value to clip gradients')
