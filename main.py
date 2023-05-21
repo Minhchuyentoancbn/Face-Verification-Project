@@ -17,6 +17,7 @@ from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.tensorboard import SummaryWriter
 from torchvision import datasets, transforms
 from facenet_pytorch import InceptionResnetV1, fixed_image_standardization
+from torchattacks.attack import FGSM
 
 
 def parse_arguments(argv):
@@ -93,6 +94,11 @@ def main(args):
     else:
         center_loss_fn = None
         optimizer_center = None
+
+    if args.adv:
+        attack = FGSM(resnet, eps=args.eps)
+    else:
+        attack = None
 
     #######################################
     # Define dataset, and dataloader
@@ -191,7 +197,7 @@ def main(args):
             # Train
             pass_epoch(resnet, loss_fn, train_loader, val_loader, optimizer,
                        batch_metrics=metrics, device=device, writer=writer, args=args,
-                       center_loss_fn=center_loss_fn, optimizer_center=optimizer_center
+                       center_loss_fn=center_loss_fn, optimizer_center=optimizer_center, attack=attack
                        )
 
             if (epoch + 1) % args.step_size == 0:

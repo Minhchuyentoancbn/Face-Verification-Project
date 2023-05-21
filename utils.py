@@ -2,7 +2,6 @@ import os
 import time
 import numpy as np
 from addition_loss import triplet_loss
-from torchattacks.attack import FGSM
 
 import torch
 import torch.nn as nn
@@ -185,6 +184,7 @@ def pass_epoch(
     args=None,
     center_loss_fn:nn.Module=None, 
     optimizer_center: torch.optim.Optimizer=None,
+    attack=None
 ):
     """
     rain over a data epoch.
@@ -225,6 +225,9 @@ def pass_epoch(
 
     optimizer_center: torch.optim.Optimizer
         Optimizer for center loss. (default: {None})
+
+    attack: torchattacks.FSGM
+        Adversarial attack. (default: {None})
     
     Returns:
     -------
@@ -243,9 +246,6 @@ def pass_epoch(
     logger = Logger(mode, length=len(train_loader), calculate_mean=True)
     loss = 0
     metrics = {}
-
-    if args.adv:
-        attack = FGSM(model, eps=args.eps)
 
     for i_batch, (x, y) in enumerate(train_loader):
         # Forward pass
@@ -293,7 +293,7 @@ def pass_epoch(
 
     # Validation per epoch
     print(f'Lr: {optimizer.param_groups[0]["lr"]:0.6f}')
-    validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args, center_loss_fn)
+    validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args, center_loss_fn, attack)
 
     # Log to tensorboard
     if writer is not None:
@@ -317,7 +317,8 @@ def validate(
     writer=None,
     optimizer=None,
     args=None,
-    center_loss_fn:nn.Module=None
+    center_loss_fn:nn.Module=None,
+    attack=None
 ):
     """
     Evaluate over a data loader
@@ -352,6 +353,10 @@ def validate(
 
     center_loss_fn: nn.Module
         Center loss function. (default: {None})
+
+    attack: torchattacks.FSGM
+        Adversarial attack. (default: {None})
+
     Returns:
     -------
     tuple(torch.Tensor, dict) 
@@ -386,6 +391,11 @@ def validate(
         if args.center:
             with torch.no_grad():
                 loss_batch += args.beta * center_loss_fn(linear, y)
+
+        if args.adv:
+            x_adv = attack(x, y)
+            y_pred_adv, _ = model(x_adv)
+            loss_batch += loss_fn(y_pred_adv, y)
 
         loss_batch = loss_batch.detach().cpu()
         loss += loss_batch.item()
