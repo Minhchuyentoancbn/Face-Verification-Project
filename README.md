@@ -45,6 +45,15 @@ python main.py --num_tasks 1 --batch_size 128 --epochs 3 --lr 0.1 --momentum 0.9
 python main.py --num_tasks 1 --batch_size 128 --epochs 3 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 1 --smooth 1e-3
 ```
 
+
+ __Baseline + Label smoothing + Triplet Loss + Center Loss__
+
+```
+python main.py --num_tasks 1 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 1 --smooth 1e-3 --center True --beta 1e-3 --triplet True
+```
+
+
+
 ## Results on LFW
 
 | Method | Accuracy | VAL | FAR |
