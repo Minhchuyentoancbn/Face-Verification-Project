@@ -1,5 +1,7 @@
 # Building a Life-long Face Verification System
 
+![Face Recognition illustration](data/face_verification.jpg)
+
 ## Project Description
 
 - __Goal__: Build a life-long face verification system that can learn new faces without forgetting the old ones and generalize well on new faces.
