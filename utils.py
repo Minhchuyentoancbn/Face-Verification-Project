@@ -304,7 +304,7 @@ def pass_epoch(
             writer.add_scalars('lr', {mode: optimizer.param_groups[0]['lr']}, writer.iteration)
 
     # Free intermediate variables
-    del x, y, y_pred, loss_batch, metrics_batch, linear, attack
+    del x, y, y_pred, loss_batch, metrics_batch, linear
     return loss, metrics
 
 
