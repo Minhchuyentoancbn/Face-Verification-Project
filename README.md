@@ -27,14 +27,14 @@ pip install -r requirements.txt
 __Baseline__
 
 ```
-!python main.py --num_tasks 1 --batch_size 128 --epochs 3 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 1
+python main.py --num_tasks 1 --batch_size 128 --epochs 3 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 1
 ```
 
 
  __Baseline + Label smoothing__
 
 ```
-!python main.py --num_tasks 1 --batch_size 128 --epochs 3 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 1 --smooth 1e-3
+python main.py --num_tasks 1 --batch_size 128 --epochs 3 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 1 --smooth 1e-3
 ```
 
 ## Results on LFW
@@ -59,7 +59,7 @@ _[4] G. Guo and N. Zhang, â€œA survey on deep learning based face recognition,â€
 
 _[5] I. Goodfellow, J. Shlens, and C. Szegedy, Explaining and Harnessing Adversarial Examples. 2015. [Online]. Available: https://ai.google/research/pubs/pub43405_
 
-_[6] G. B. Huang, M. Ramesh, T. Berg, and E. Learned-Miller. Labeled faces in the wild: A database for studying face recognition in unconstrained environments. Technical Report 07-49, University of Massachusetts, Amherst, October 2007. 5_  
+_[6] G. B. Huang, M. Ramesh, T. Berg, and E. Learned-Miller. Labeled faces in the wild: A database for studying face recognition in unconstrained environments. Technical Report 07-49, University of Massachusetts, Amherst, October 2007._  
 
 
 
