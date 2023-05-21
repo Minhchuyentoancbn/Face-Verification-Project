@@ -1,4 +1,15 @@
-# Building a Life-long Face Recognition System
+# Building a Life-long Face Verification System
+
+## Project Description
+
+- __Goal__: Build a life-long face verification system that can learn new faces without forgetting the old ones and generalize well on new faces.
+- __Base architecture__: Inception Resnet V1
+- __Dataset__: LFW, CASIA-Webface
+- __Preprocessing__: MTCNN face detection and alignment [1]
+- __Evaluation__: Accuracy, VAL, FAR on LFW dataset using the unrestricted with labeled outside data protocol
+- __Training__: 
+    - __1 Task__: Use softmax loss, label smoothing to train the model
+
 
 ## Setup environment
 
@@ -26,6 +37,12 @@ __Baseline__
 !python main.py --num_tasks 1 --batch_size 128 --epochs 3 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 1 --smooth 1e-3
 ```
 
+## Results on LFW
+
+| Method | Accuracy | VAL | FAR |
+| :---: | :---: | :---: | :---: |
+| Baseline | 0.96816 | 0.755 | 0.00133 |
+| Baseline + Label smoothing | 0.97349 | 0.82733 | 0.00133 |
 
 
 ## References
