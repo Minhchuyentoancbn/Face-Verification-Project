@@ -41,7 +41,7 @@ def euclidean_dist(x, y):
     yy = torch.pow(y, 2).sum(1, keepdim=True).expand(n, m).t()
     dist = xx + yy
     dist.addmm_(x, y.t(), beta=1, alpha=-2)
-    dist = dist.clamp(min=1e-12)  # for numerical stability
+    dist = dist.clamp(min=1e-12, max=1e+12)  # for numerical stability
     return dist
 
 
@@ -165,9 +165,9 @@ class CenterLoss(nn.Module):
 
 
     def forward(self, x, labels):
-        batch_size = x.size(0)
+        batch_size = labels.size(0)
         distmat = torch.pow(x, 2).sum(dim=1, keepdim=True).expand(batch_size, self.num_classes) + \
-                  torch.pow(self.centers, 2).sum(dim=1, keepdim=True).expand(self.num_classes, batch_size).t()
+                  torch.pow(self.centers, 2).sum(dim=1, keepdim=True).expand(self.num_classes, batch_size).t()  # (batch_size, num_classes)
         distmat.addmm_(x, self.centers.t(), beta=1, alpha=-2)
         classes = torch.arange(self.num_classes).long().to(labels.device)
         labels = labels.unsqueeze(1).expand(batch_size, self.num_classes)
