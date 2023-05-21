@@ -2,6 +2,7 @@ import os
 import time
 import numpy as np
 from addition_loss import triplet_loss
+from torchattacks.attack import FGSM
 
 import torch
 import torch.nn as nn
@@ -243,6 +244,9 @@ def pass_epoch(
     loss = 0
     metrics = {}
 
+    if args.adv:
+        attack = FGSM(model, eps=args.eps)
+
     for i_batch, (x, y) in enumerate(train_loader):
         # Forward pass
         x = x.to(device)
@@ -259,6 +263,11 @@ def pass_epoch(
         if args.center:
             loss_batch += args.beta * center_loss_fn(linear, y)
             optimizer_center.zero_grad()
+
+        if args.adv:
+            x_adv = attack(x, y)
+            y_pred_adv, _ = model(x_adv)
+            loss_batch += loss_fn(y_pred_adv, y)
 
         # Backward pass
         optimizer.zero_grad()
@@ -295,7 +304,7 @@ def pass_epoch(
             writer.add_scalars('lr', {mode: optimizer.param_groups[0]['lr']}, writer.iteration)
 
     # Free intermediate variables
-    del x, y, y_pred, loss_batch, metrics_batch, linear
+    del x, y, y_pred, loss_batch, metrics_batch, linear, attack
     return loss, metrics
 
 

@@ -21,6 +21,7 @@ from facenet_pytorch import InceptionResnetV1, fixed_image_standardization
 
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
+    parser.add_argument('--seed', type=int, default=SEED, help='Random seed')
     parser.add_argument('--preprocess', type=bool, default=False, help='Preprocess CASIA-Webface dataset')
     parser.add_argument('--num_tasks', type=int, default=10, help='Number of tasks to split the dataset')
     parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
@@ -33,12 +34,17 @@ def parse_arguments(argv):
     # parser.add_argument('--min_lr', type=float, default=0.0, help='Minimum learning rate for LearningRateRangeTest')
     # parser.add_argument('--max_lr', type=float, default=0.0, help='Maximum learning rate for LearningRateRangeTest')
     parser.add_argument('--smooth', type=float, default=0.0, help='Label smoothing')
+
     parser.add_argument('--triplet', type=bool, default=False, help='Use triplet loss')
     parser.add_argument('--margin', type=float, default=0.3, help='Margin for triplet loss')
     parser.add_argument('--alpha', type=float, default=1, help='Alpha for triplet loss')
+
     parser.add_argument('--center', type=bool, default=False, help='Use center loss')
     parser.add_argument('--beta', type=float, default= 0.0005, help='Beta for center loss')
     parser.add_argument('--center_lr', type=float, default=0.5, help='Learning rate for center loss')
+
+    parser.add_argument('--adv', type=bool, default=False, help='Use adversarial training')
+    parser.add_argument('--eps', type=float, default=8/255, help='Epsilon for adversarial training')
 
     parser.add_argument('--clip', type=bool, default=False, help='Whether to clip gradients')
     parser.add_argument('--clip_value', type=float, default=0.0, help='Value to clip gradients')
@@ -216,8 +222,8 @@ def main(args):
 
 
 if __name__ == '__main__':
-    seed_everything(SEED)
     args = parse_arguments(sys.argv[1:])
+    seed_everything(args.seed)
 
     if args.preprocess:
         # Create data folders
