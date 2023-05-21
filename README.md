@@ -66,6 +66,12 @@ python main.py --num_tasks 1 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.
 | Baseline + Label smoothing | 0.97349 | 0.82733 | 0.00133 |
 
 
+## Run Server
+```
+python run_server.py
+```
+
+
 ## References
 
 __Papers:__
