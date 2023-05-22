@@ -7,7 +7,7 @@ from preprocess import preprocess_data
 from addition_loss import CenterLoss
 from evaluate import evaluate_lfw
 from config import *
-from utils import get_device, seed_everything, weights_init, accuracy, BatchTimer, pass_epoch
+from utils import get_device, seed_everything, weights_init, accuracy, BatchTimer, pass_epoch, validate
 
 import torch
 import torch.nn as nn
@@ -157,6 +157,13 @@ def main(args):
     if not os.path.exists(LOG_DIR + args.exp_name):
         os.makedirs(LOG_DIR + args.exp_name)
 
+    # Initialize accuracy matrix
+    # tasks_accuracy[i, j] is the accuracy of task j after observing task i
+    tasks_accuracy = np.zeros((num_tasks, num_tasks))
+    tasks_lfw_accuracy = np.zeros(num_tasks)
+    tasks_lfw_val = np.zeros(num_tasks)
+    tasks_lfw_far = np.zeros(num_tasks)
+
     # Train
     for task in range(num_tasks):
         train_loader = train_loaders[task]
@@ -198,7 +205,7 @@ def main(args):
             # Evaluate on LFW
             if (epoch + 1) % args.eval_cycle == 0:
                 print('Validate on LFW')
-                lfw_accuracy = evaluate_lfw(resnet)
+                lfw_accuracy, lfw_val, lfw_far = evaluate_lfw(resnet)
 
         writer.close()
         print(f'Task {task + 1} / {num_tasks} finished.')
@@ -207,7 +214,11 @@ def main(args):
         # Evaluate on LFW
         if epochs % args.eval_cycle != 0:
             print('Validate on LFW')
-            lfw_accuracy = evaluate_lfw(resnet)
+            lfw_accuracy, lfw_val, lfw_far = evaluate_lfw(resnet)
+
+        tasks_lfw_accuracy[task] = lfw_accuracy
+        tasks_lfw_val[task] = lfw_val
+        tasks_lfw_far[task] = lfw_far
 
         # Save model
         if num_tasks > 1:
@@ -215,7 +226,17 @@ def main(args):
         else:
             torch.save(resnet.state_dict(), f'./trained_models/resnet.pth')
 
-        
+        for tid in range(num_tasks):
+            loss, metrics = validate(resnet, loss_fn, val_loaders[tid], metrics, 
+                                     device=device, args=args, optimizer=optimizer, 
+                                     center_loss_fn=center_loss_fn)
+            tasks_accuracy[task, tid] = metrics['accuracy']
+
+        # Save accuracy matrix
+        np.save('results/accuracy_matrix.npy', tasks_accuracy)
+        np.save('results/lfw_accuracy.npy', tasks_lfw_accuracy)
+        np.save('results/lfw_val.npy', tasks_lfw_val)
+        np.save('results/lfw_far.npy', tasks_lfw_far)
 
 
 

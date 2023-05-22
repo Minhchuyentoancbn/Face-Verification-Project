@@ -190,6 +190,25 @@ def evaluate_lfw(model: nn.Module,
              ):
     """
     Evaluate the model on the LFW dataset
+
+    Parameters
+    ----------
+    model: nn.Module
+        The model to evaluate
+
+    batch_size: int
+        The batch size to use for evaluation
+
+    Returns
+    -------
+    accuracy: float
+        The accuracy of the model on the LFW dataset
+
+    val: float
+        The validation rate of the model on the LFW dataset
+
+    far: float
+        The false acceptance rate of the model on the LFW dataset
     """
     crop_paths = np.load('data/lfw/crop_paths.npy')
     trans = transforms.Compose([
@@ -238,4 +257,4 @@ def evaluate_lfw(model: nn.Module,
 
     model.classify = classify
 
-    return accuracy
+    return accuracy, val, far
