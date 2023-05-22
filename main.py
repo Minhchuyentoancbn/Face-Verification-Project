@@ -2,6 +2,7 @@ import argparse
 import sys
 import os
 import numpy as np
+import copy
 
 from preprocess import preprocess_data
 from addition_loss import CenterLoss
@@ -237,6 +238,10 @@ def main(args):
         np.save('results/lfw_accuracy.npy', tasks_lfw_accuracy)
         np.save('results/lfw_val.npy', tasks_lfw_val)
         np.save('results/lfw_far.npy', tasks_lfw_far)
+
+        if task == 0:
+            resnet_old = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob, device=device)
+        resnet_old.load_state_dict(copy.deepcopy(resnet.state_dict()))
 
 
 
