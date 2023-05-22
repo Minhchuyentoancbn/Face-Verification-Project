@@ -44,6 +44,13 @@ def parse_arguments(argv):
     parser.add_argument('--beta', type=float, default= 0.0005, help='Beta for center loss')
     parser.add_argument('--center_lr', type=float, default=0.5, help='Learning rate for center loss')
 
+    parser.add_argument('--ns', type=bool, default=False, help='Use Neighborhood Selection')
+    parser.add_argument('--cr', type=bool, default=False, help='Use Consistency Relaxation')
+    parser.add_argument('--lambda_new', type=float, default=0.1, help='Lambda for new loss')
+    parser.add_argument('--T', type=float, default=2.0, help='Temperature for new loss')
+    parser.add_argument('--K', type=int, default=100, help='Number of selected neighbors')
+    parser.add_argument('--beta0', type=float, default=0.1, help='Beta0, margin for Consistency Relaxation')
+
     parser.add_argument('--clip', type=bool, default=False, help='Whether to clip gradients')
     parser.add_argument('--clip_value', type=float, default=0.0, help='Value to clip gradients')
     parser.add_argument('--eval_cycle', type=int, default=20, help='Evaluate every n epochs')
@@ -242,6 +249,7 @@ def main(args):
         if task == 0:
             resnet_old = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob, device=device)
         resnet_old.load_state_dict(copy.deepcopy(resnet.state_dict()))
+        resnet_old.eval()
 
 
 
