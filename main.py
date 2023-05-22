@@ -8,7 +8,8 @@ from preprocess import preprocess_data
 from addition_loss import CenterLoss
 from evaluate import evaluate_lfw
 from config import *
-from utils import get_device, seed_everything, weights_init, accuracy, BatchTimer, pass_epoch, validate
+from utils import get_device, seed_everything, weights_init, accuracy, BatchTimer
+from train_utils import pass_epoch, validate
 
 import torch
 import torch.nn as nn
@@ -44,6 +45,8 @@ def parse_arguments(argv):
     parser.add_argument('--beta', type=float, default= 0.0005, help='Beta for center loss')
     parser.add_argument('--center_lr', type=float, default=0.5, help='Learning rate for center loss')
 
+    parser.add_argument('--finetune', type=bool, default=True, help='Fineture the model')
+    parser.add_argument('--distill', type=bool, default=False, help='Use distillation loss')
     parser.add_argument('--ns', type=bool, default=False, help='Use Neighborhood Selection')
     parser.add_argument('--cr', type=bool, default=False, help='Use Consistency Relaxation')
     parser.add_argument('--lambda_new', type=float, default=0.1, help='Lambda for new loss')
@@ -74,6 +77,7 @@ def main(args):
     num_classes = len(os.listdir(casia_cropped_path))
     resnet = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob)
     resnet = weights_init(resnet).to(device)
+    resnet_old = None
 
     # Define classes and tasks
     num_tasks = args.num_tasks
@@ -174,8 +178,14 @@ def main(args):
 
     # Train
     for task in range(num_tasks):
+        old_classes = classes[:task * num_classes_per_task]
         train_loader = train_loaders[task]
         val_loader = val_loaders[task]
+
+        if not args.finetune and task > 0:
+            # Recreate model
+            resnet = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob)
+            resnet = weights_init(resnet).to(device)
         # if num_tasks > 1:
         #     train_loader = torch.load(f'./data/train_loader_{task}.pth')
         #     val_loader = torch.load(f'./data/val_loader_{task}.pth')
@@ -204,7 +214,8 @@ def main(args):
             # Train
             pass_epoch(resnet, loss_fn, train_loader, val_loader, optimizer,
                        batch_metrics=metrics, device=device, writer=writer, args=args,
-                       center_loss_fn=center_loss_fn, optimizer_center=optimizer_center
+                       center_loss_fn=center_loss_fn, optimizer_center=optimizer_center,
+                       old_classes=old_classes, model_old=resnet_old
                        )
 
             if (epoch + 1) % args.step_size == 0:
@@ -246,10 +257,12 @@ def main(args):
         np.save('results/lfw_val.npy', tasks_lfw_val)
         np.save('results/lfw_far.npy', tasks_lfw_far)
 
-        if task == 0:
-            resnet_old = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob, device=device)
-        resnet_old.load_state_dict(copy.deepcopy(resnet.state_dict()))
-        resnet_old.eval()
+        if not args.finetune:
+            # Save model for distillation
+            if task == 0:
+                resnet_old = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob, device=device)
+            resnet_old.load_state_dict(copy.deepcopy(resnet.state_dict()))
+            resnet_old.eval()
 
 
 

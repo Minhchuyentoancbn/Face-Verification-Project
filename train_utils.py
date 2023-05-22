@@ -1,0 +1,290 @@
+import torch
+import torch.nn as nn
+from torchvision.transforms.functional import hflip
+
+import numpy as np
+from addition_loss import triplet_loss
+from utils import Logger, BatchTimer
+
+
+def calculate_loss(
+    x: torch.Tensor,
+    y: torch.Tensor,
+    model: nn.Module,
+    loss_fn: callable,
+    center_loss_fn: nn.Module=None,
+    args=None,
+):
+    """
+    Calculates the loss of a batch
+
+    Parameters
+    ----------
+    x : torch.Tensor
+        Input tensor
+
+    y : torch.Tensor
+        Labels
+
+    model : nn.Module
+        PyTorch model
+
+    loss_fn : callable
+        Loss function
+
+    center_loss_fn : nn.Module, optional
+        Center loss function, by default None
+
+    args : argparse.ArgumentParser, optional
+        Command line arguments, by default None
+
+    Returns
+    -------
+    loss_batch: torch.Tensor
+        Loss
+    """
+    if not model.training:
+        with torch.no_grad():
+            y_pred, linear = model(x)
+    else:
+        y_pred, linear = model(x)
+
+    loss_batch = loss_fn(y_pred, y)
+    # Triplet loss
+    if args.triplet:
+        loss_batch += triplet_loss(linear, y, margin=args.margin) * args.alpha
+
+    # Center loss
+    if args.center:
+        if not model.training:
+            with torch.no_grad():
+                loss_batch += args.beta * center_loss_fn(linear, y)
+        else:
+            loss_batch += args.beta * center_loss_fn(linear, y)
+
+    return loss_batch
+
+
+def pass_epoch(
+    model: nn.Module, 
+    loss_fn: callable, 
+    train_loader: torch.utils.data.DataLoader,
+    valid_loader: torch.utils.data.DataLoader,
+    optimizer: torch.optim.Optimizer=None, 
+    batch_metrics: dict={'time': BatchTimer()},
+    device='gpu', 
+    writer=None,
+    args=None,
+    center_loss_fn:nn.Module=None, 
+    optimizer_center: torch.optim.Optimizer=None,
+    model_old: nn.Module=None,
+    old_classes: np.ndarray=None
+):
+    """
+    rain over a data epoch.
+    
+    Parameters:
+    ----------
+    model: torch.nn.Module
+        Pytorch model.
+
+    loss_fn: callable
+        A function to compute (scalar) loss.
+
+    train_loader: torch.utils.data.DataLoader
+        DataLoader for training data.
+
+    valid_loader: torch.utils.data.DataLoader
+        DataLoader for validation data.
+    
+    optimizer: torch.optim.Optimizer
+        A pytorch optimizer.
+
+    batch_metrics: dict 
+        Dictionary of metric functions to call on each batch. The default
+        is a simple timer. A progressive average of these metrics, along with the average
+        loss, is printed every batch. (default: {{'time': iter_timer()}})
+
+    device: str or torch.device
+        Device for pytorch to use. (default: {'cpu'})
+        
+    writer: torch.utils.tensorboard.SummaryWriter 
+        Tensorboard SummaryWriter. (default: {None})
+    
+    args: argparse.ArgumentParser
+        Command line arguments. (default: {None})
+    
+    center_loss_fn: nn.Module
+        Center loss function. (default: {None})
+
+    optimizer_center: torch.optim.Optimizer
+        Optimizer for center loss. (default: {None})
+
+    model_old: nn.Module
+        Old model. (default: {None})
+
+    old_classes: np.ndarray
+        Old classes. (default: {None})
+    
+    Returns:
+    -------
+    tuple(torch.Tensor, dict) 
+        A tuple of the average loss and a dictionary of average metric values across the epoch.
+    """
+    
+    # Set model to train or eval mode
+    mode = 'Train' if model.training else 'Valid'
+    if mode == 'Valid':
+        model.train()
+        mode = 'Train'
+        if args.center:
+            center_loss_fn.train()
+
+    logger = Logger(mode, length=len(train_loader), calculate_mean=True)
+    loss = 0
+    metrics = {}
+
+    for i_batch, (x, y) in enumerate(train_loader):
+        # Forward pass
+        x = x.to(device)
+        y = y.to(device)
+        model.train()
+
+        loss_batch = calculate_loss(x, y, model, loss_fn, center_loss_fn, args=args)
+
+        if args.center:
+            optimizer_center.zero_grad()
+
+        # Backward pass
+        optimizer.zero_grad()
+        loss_batch.backward()
+        # Clip gradients
+        if args.clip:
+            nn.utils.clip_grad_norm_(model.parameters(), args.clip_value)
+        optimizer.step()
+        if args.center:
+            for param in center_loss_fn.parameters():
+                param.grad.data *= (1. / args.beta)
+            optimizer_center.step()
+
+        loss_batch = loss_batch.detach().cpu()
+        loss += loss_batch.item()
+
+        # Update metrics and print values
+        metrics_batch = {}
+        for metric_name, metric_fn in batch_metrics.items():
+            metrics_batch[metric_name] = metric_fn(y_pred, y).detach().cpu()
+            metrics[metric_name] = metrics.get(metric_name, 0) + metrics_batch[metric_name]
+        logger(loss, metrics, i_batch)
+
+    # Validation per epoch
+    print(f'Lr: {optimizer.param_groups[0]["lr"]:0.6f}')
+    validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args, center_loss_fn)
+
+    # Log to tensorboard
+    if writer is not None:
+        writer.add_scalars('loss', {mode: loss / (i_batch + 1)}, writer.iteration)
+        for metric_name, metric in metrics.items():
+            writer.add_scalars(metric_name, {mode: metric / (i_batch + 1)})
+        if optimizer is not None:
+            writer.add_scalars('lr', {mode: optimizer.param_groups[0]['lr']}, writer.iteration)
+
+    # Free intermediate variables
+    del x, y, y_pred, loss_batch, metrics_batch, linear
+    return loss, metrics
+
+
+def validate(
+    model: nn.Module, 
+    loss_fn: callable, 
+    loader: torch.utils.data.DataLoader, 
+    batch_metrics: dict={'time': BatchTimer()}, 
+    device='gpu', 
+    writer=None,
+    optimizer=None,
+    args=None,
+    center_loss_fn:nn.Module=None
+):
+    """
+    Evaluate over a data loader
+    
+    Parameters:
+    ----------
+    model: torch.nn.Module
+        Pytorch model.
+
+    loss_fn: callable
+        A function to compute (scalar) loss.
+
+    loader: torch.utils.data.DataLoader
+        A pytorch data loader.
+
+    batch_metrics: dict 
+        Dictionary of metric functions to call on each batch. The default
+        is a simple timer. A progressive average of these metrics, along with the average
+        loss, is printed every batch. (default: {{'time': iter_timer()}})
+
+    device: str or torch.device
+        Device for pytorch to use. (default: {'cpu'})
+        
+    writer: torch.utils.tensorboard.SummaryWriter 
+        Tensorboard SummaryWriter. (default: {None})
+
+    optimizer: torch.optim.Optimizer
+        Pytorch optimizer. (default: {None})
+    
+    args: argparse.ArgumentParser
+        Command line arguments. (default: {None})
+
+    center_loss_fn: nn.Module
+        Center loss function. (default: {None})
+
+    Returns:
+    -------
+    tuple(torch.Tensor, dict) 
+        A tuple of the average loss and a dictionary of average metric values across the epoch.
+    """
+    
+    mode = 'Train' if model.training else 'Valid'
+    if mode == 'Train':
+        model.eval()
+        if args.center:
+            center_loss_fn.eval()
+        mode = 'Valid'
+
+    loss = 0
+    metrics = {}
+    logger = Logger(mode, length=len(loader), calculate_mean=True)
+
+    for i_batch, (x, y) in enumerate(loader):
+        # Flip images horizontally
+        x = hflip(x).to(device)
+        y = y.to(device)
+
+        loss_batch = loss_batch = calculate_loss(x, y, model, loss_fn, center_loss_fn, args=args)
+
+        loss_batch = loss_batch.detach().cpu()
+        loss += loss_batch.item()
+
+        metrics_batch = {}
+        for metric_name, metric_fn in batch_metrics.items():
+            metrics_batch[metric_name] = metric_fn(y_pred, y).detach().cpu()
+            metrics[metric_name] = metrics.get(metric_name, 0) + metrics_batch[metric_name]
+
+    logger(loss, metrics, i_batch)
+
+    loss = loss / (i_batch + 1)
+    metrics = {k: v / (i_batch + 1) for k, v in metrics.items()}
+            
+    if writer is not None:
+        writer.add_scalars('loss', {mode: loss}, writer.iteration)
+        for metric_name, metric in metrics.items():
+            writer.add_scalars(metric_name, {mode: metric})
+        if optimizer is not None:
+            writer.add_scalars('lr', {mode: optimizer.param_groups[0]['lr']}, writer.iteration)
+        writer.iteration += 1
+
+    # Free intermediate variables
+    del x, y, y_pred, loss_batch, metrics_batch, linear
+
+    return loss, metrics
