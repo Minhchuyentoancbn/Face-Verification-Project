@@ -257,4 +257,4 @@ def evaluate_lfw(model: nn.Module,
 
     model.classify = classify
 
-    return accuracy, val, far
+    return np.mean(accuracy), val, far
