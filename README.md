@@ -34,8 +34,9 @@ __Arguments:__
 ```
 usage: main.py [-h] [--seed SEED] [--preprocess PREPROCESS] [--num_tasks NUM_TASKS] [--batch_size BATCH_SIZE] [--epochs EPOCHS] [--optimizer OPTIMIZER]
                [--lr LR] [--momentum MOMENTUM] [--weight_decay WEIGHT_DECAY] [--dropout DROPOUT] [--smooth SMOOTH] [--triplet TRIPLET] [--margin MARGIN]
-               [--alpha ALPHA] [--center CENTER] [--beta BETA] [--center_lr CENTER_LR] [--adv ADV] [--eps EPS] [--clip CLIP] [--clip_value CLIP_VALUE]
-               [--eval_cycle EVAL_CYCLE] [--step_size STEP_SIZE] [--exp_name EXP_NAME]
+               [--alpha ALPHA] [--center CENTER] [--beta BETA] [--center_lr CENTER_LR] [--finetune FINETUNE] [--distill DISTILL] [--ns NS] [--cr CR]
+               [--lambda_old LAMBDA_OLD] [--T T] [--K K] [--beta0 BETA0] [--clip CLIP] [--clip_value CLIP_VALUE] [--eval_cycle EVAL_CYCLE]
+               [--step_size STEP_SIZE] [--exp_name EXP_NAME]
 
 options:
   -h, --help            show this help message and exit
@@ -49,21 +50,21 @@ options:
   --epochs EPOCHS       Number of epochs
   --optimizer OPTIMIZER
                         Optimizer types: {sgd, adam}
-  --lr LR               Learning rate
-  --momentum MOMENTUM   Momentum
-  --weight_decay WEIGHT_DECAY
-                        Weight decay
-  --dropout DROPOUT     Dropout probability for last fully connected layer
-  --smooth SMOOTH       Label smoothing
-  --triplet TRIPLET     Use triplet loss
   --margin MARGIN       Margin for triplet loss
   --alpha ALPHA         Alpha for triplet loss
   --center CENTER       Use center loss
   --beta BETA           Beta for center loss
   --center_lr CENTER_LR
                         Learning rate for center loss
-  --adv ADV             Use adversarial training
-  --eps EPS             Epsilon for adversarial training
+  --finetune FINETUNE   Finetune the model
+  --distill DISTILL     Use distillation loss
+  --ns NS               Use Neighborhood Selection
+  --cr CR               Use Consistency Relaxation
+  --lambda_old LAMBDA_OLD
+                        Lambda for old loss
+  --T T                 Temperature for new loss
+  --K K                 Number of selected neighbors
+  --beta0 BETA0         Beta0, margin for Consistency Relaxation
   --clip CLIP           Whether to clip gradients
   --clip_value CLIP_VALUE
                         Value to clip gradients
@@ -86,6 +87,13 @@ python main.py --num_tasks 1 --batch_size 128 --epochs 3 --lr 0.1 --momentum 0.9
 
 ```
 python main.py --num_tasks 1 --batch_size 128 --epochs 3 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 1 --smooth 1e-3
+```
+
+
+ __Baseline + Triplet Loss + Center Loss__
+
+```
+python main.py --num_tasks 1 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 1 --center True --beta 1e-3 --triplet True
 ```
 
 
@@ -131,4 +139,3 @@ G. B. Huang, M. Ramesh, T. Berg, and E. Learned-Miller. Labeled faces in the wil
 __Github repositories:__
 
 - [faceNet-pytorch](https://github.com/timesler/facenet-pytorch)
-- [adversarial-attacks-pytorch](https://github.com/Harry24k/adversarial-attacks-pytorch)
