@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torchvision.transforms.functional import hflip
 
 import numpy as np
@@ -13,6 +14,8 @@ def calculate_loss(
     model: nn.Module,
     loss_fn: callable,
     center_loss_fn: nn.Module=None,
+    model_old: nn.Module=None,
+    old_classes: np.ndarray=None,
     args=None,
 ):
     """
@@ -34,6 +37,12 @@ def calculate_loss(
 
     center_loss_fn : nn.Module, optional
         Center loss function, by default None
+
+    model_old : nn.Module, optional
+        Old model, by default None
+
+    old_classes : np.ndarray, optional
+        Old classes, by default None
 
     args : argparse.ArgumentParser, optional
         Command line arguments, by default None
@@ -61,6 +70,35 @@ def calculate_loss(
                 loss_batch += args.beta * center_loss_fn(linear, y)
         else:
             loss_batch += args.beta * center_loss_fn(linear, y)
+
+    if args.distill and len(old_classes) > 0:
+
+        # Old model prediction
+        with torch.no_grad():
+            y_pred_old, _ = model_old(x)
+
+        y_pred_old = y_pred_old[:, old_classes]
+        y_pred = y_pred[:, old_classes]
+
+        # Neighborhood selection
+        if args.ns:
+            # Select top args.K classes for each sample
+            y_pred_old, selected_indices = y_pred_old.topk(args.K, dim=1)
+            y_pred = y_pred.gather(1, selected_indices)
+
+        # Distillation loss
+        distill_loss = (
+            F.log_softmax(y_pred_old / args.temperature, dim=1) * F.softmax(y_pred_old / args.temperature, dim=1)
+            - F.log_softmax(y_pred / args.temperature, dim=1) * F.softmax(y_pred_old / args.temperature, dim=1)
+        ).sum(dim=1)
+
+        # Consistency relaxation
+        if args.cr:
+            margin = -args.beta0 * (F.softmax(y_pred_old / args.temperature, dim=1) * F.log_softmax(y_pred_old / args.temperature, dim=1)).sum(dim=1)
+            distill_loss -= margin
+
+        loss_batch += args.lambda_old * F.relu(distill_loss).mean()
+
 
     return loss_batch
 
@@ -150,7 +188,7 @@ def pass_epoch(
         y = y.to(device)
         model.train()
 
-        loss_batch = calculate_loss(x, y, model, loss_fn, center_loss_fn, args=args)
+        loss_batch = calculate_loss(x, y, model, loss_fn, center_loss_fn, model_old=model_old, old_classes=old_classes, args=args)
 
         if args.center:
             optimizer_center.zero_grad()
@@ -179,7 +217,7 @@ def pass_epoch(
 
     # Validation per epoch
     print(f'Lr: {optimizer.param_groups[0]["lr"]:0.6f}')
-    validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args, center_loss_fn)
+    validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args, center_loss_fn, model_old, old_classes)
 
     # Log to tensorboard
     if writer is not None:
@@ -203,7 +241,9 @@ def validate(
     writer=None,
     optimizer=None,
     args=None,
-    center_loss_fn:nn.Module=None
+    center_loss_fn:nn.Module=None,
+    model_old: nn.Module=None,
+    old_classes: np.ndarray=None
 ):
     """
     Evaluate over a data loader
@@ -239,6 +279,12 @@ def validate(
     center_loss_fn: nn.Module
         Center loss function. (default: {None})
 
+    model_old: nn.Module
+        Old model. (default: {None})
+
+    old_classes: np.ndarray
+        Old classes. (default: {None})
+
     Returns:
     -------
     tuple(torch.Tensor, dict) 
@@ -261,7 +307,7 @@ def validate(
         x = hflip(x).to(device)
         y = y.to(device)
 
-        loss_batch = loss_batch = calculate_loss(x, y, model, loss_fn, center_loss_fn, args=args)
+        loss_batch = calculate_loss(x, y, model, loss_fn, center_loss_fn, model_old=model_old, old_classes=old_classes, args=args)
 
         loss_batch = loss_batch.detach().cpu()
         loss += loss_batch.item()

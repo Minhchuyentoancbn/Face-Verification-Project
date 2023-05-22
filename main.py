@@ -33,8 +33,7 @@ def parse_arguments(argv):
     parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
     parser.add_argument('--weight_decay', type=float, default=0.0, help='Weight decay')
     parser.add_argument('--dropout', type=float, default=0.2, help='Dropout probability for last fully connected layer')
-    # parser.add_argument('--min_lr', type=float, default=0.0, help='Minimum learning rate for LearningRateRangeTest')
-    # parser.add_argument('--max_lr', type=float, default=0.0, help='Maximum learning rate for LearningRateRangeTest')
+
     parser.add_argument('--smooth', type=float, default=0.0, help='Label smoothing')
 
     parser.add_argument('--triplet', type=bool, default=False, help='Use triplet loss')
@@ -45,12 +44,12 @@ def parse_arguments(argv):
     parser.add_argument('--beta', type=float, default= 0.0005, help='Beta for center loss')
     parser.add_argument('--center_lr', type=float, default=0.5, help='Learning rate for center loss')
 
-    parser.add_argument('--finetune', type=bool, default=True, help='Fineture the model')
+    parser.add_argument('--finetune', type=bool, default=True, help='Finetune the model')
     parser.add_argument('--distill', type=bool, default=False, help='Use distillation loss')
     parser.add_argument('--ns', type=bool, default=False, help='Use Neighborhood Selection')
     parser.add_argument('--cr', type=bool, default=False, help='Use Consistency Relaxation')
-    parser.add_argument('--lambda_new', type=float, default=0.1, help='Lambda for new loss')
-    parser.add_argument('--T', type=float, default=2.0, help='Temperature for new loss')
+    parser.add_argument('--lambda_old', type=float, default=1.0, help='Lambda for old loss')
+    parser.add_argument('--T', type=float, default=1.0, help='Temperature for new loss')
     parser.add_argument('--K', type=int, default=100, help='Number of selected neighbors')
     parser.add_argument('--beta0', type=float, default=0.1, help='Beta0, margin for Consistency Relaxation')
 
