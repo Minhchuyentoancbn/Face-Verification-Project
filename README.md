@@ -12,9 +12,9 @@ __Dataset__: LFW, CASIA-Webface
 
 __Preprocessing__: MTCNN face detection and alignment
 
- __Evaluation__: Accuracy, VAL, FAR on LFW dataset using the unrestricted with labeled outside data protocol
+__Evaluation__: Accuracy, VAL, FAR on LFW dataset using the unrestricted with labeled outside data protocol
 
- __Methods__: Softmax, Label smoothing, Triplet loss, Center loss, Adversarial training
+__Methods__: Softmax loss, Label smoothing, Triplet loss, Center loss
 
 
 ## Setup environment
@@ -123,8 +123,6 @@ F. Schroff, D. Kalenichenko, and J. Philbin, FaceNet: A unified embedding for fa
 B. Zhao, S. Tang, D. Chen, H. Bilen, and R. Zhao, Continual Representation Learning for Biometric Identification. 2021. doi: 10.1109/wacv48630.2021.00124.
 
 G. Guo and N. Zhang, “A survey on deep learning based face recognition,” Computer Vision and Image Understanding, vol. 189, p. 102805, Dec. 2019, doi: 10.1016/j.cviu.2019.102805.
-
-I. Goodfellow, J. Shlens, and C. Szegedy, Explaining and Harnessing Adversarial Examples. 2015. [Online]. Available: https://ai.google/research/pubs/pub43405
 
 G. B. Huang, M. Ramesh, T. Berg, and E. Learned-Miller. Labeled faces in the wild: A database for studying face recognition in unconstrained environments. Technical Report 07-49, University of Massachusetts, Amherst, October 2007.  
 
