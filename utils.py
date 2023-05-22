@@ -183,8 +183,7 @@ def pass_epoch(
     writer=None,
     args=None,
     center_loss_fn:nn.Module=None, 
-    optimizer_center: torch.optim.Optimizer=None,
-    attack=None
+    optimizer_center: torch.optim.Optimizer=None
 ):
     """
     rain over a data epoch.
@@ -225,9 +224,6 @@ def pass_epoch(
 
     optimizer_center: torch.optim.Optimizer
         Optimizer for center loss. (default: {None})
-
-    attack: torchattacks.FSGM
-        Adversarial attack. (default: {None})
     
     Returns:
     -------
@@ -264,11 +260,6 @@ def pass_epoch(
             loss_batch += args.beta * center_loss_fn(linear, y)
             optimizer_center.zero_grad()
 
-        if args.adv:
-            x_adv = attack(x, y)
-            y_pred_adv, _ = model(x_adv)
-            loss_batch += loss_fn(y_pred_adv, y)
-
         # Backward pass
         optimizer.zero_grad()
         loss_batch.backward()
@@ -293,7 +284,7 @@ def pass_epoch(
 
     # Validation per epoch
     print(f'Lr: {optimizer.param_groups[0]["lr"]:0.6f}')
-    validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args, center_loss_fn, attack)
+    validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args, center_loss_fn)
 
     # Log to tensorboard
     if writer is not None:
@@ -317,8 +308,7 @@ def validate(
     writer=None,
     optimizer=None,
     args=None,
-    center_loss_fn:nn.Module=None,
-    attack=None
+    center_loss_fn:nn.Module=None
 ):
     """
     Evaluate over a data loader
@@ -354,9 +344,6 @@ def validate(
     center_loss_fn: nn.Module
         Center loss function. (default: {None})
 
-    attack: torchattacks.FSGM
-        Adversarial attack. (default: {None})
-
     Returns:
     -------
     tuple(torch.Tensor, dict) 
@@ -391,11 +378,6 @@ def validate(
         if args.center:
             with torch.no_grad():
                 loss_batch += args.beta * center_loss_fn(linear, y)
-
-        if args.adv:
-            x_adv = attack(x, y)
-            y_pred_adv, _ = model(x_adv)
-            loss_batch += loss_fn(y_pred_adv, y)
 
         loss_batch = loss_batch.detach().cpu()
         loss += loss_batch.item()

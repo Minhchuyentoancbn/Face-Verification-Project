@@ -17,7 +17,6 @@ from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.tensorboard import SummaryWriter
 from torchvision import datasets, transforms
 from facenet_pytorch import InceptionResnetV1, fixed_image_standardization
-from torchattacks.attack import FGSM
 
 
 def parse_arguments(argv):
@@ -43,9 +42,6 @@ def parse_arguments(argv):
     parser.add_argument('--center', type=bool, default=False, help='Use center loss')
     parser.add_argument('--beta', type=float, default= 0.0005, help='Beta for center loss')
     parser.add_argument('--center_lr', type=float, default=0.5, help='Learning rate for center loss')
-
-    parser.add_argument('--adv', type=bool, default=False, help='Use adversarial training')
-    parser.add_argument('--eps', type=float, default=8/128, help='Epsilon for adversarial training')
 
     parser.add_argument('--clip', type=bool, default=False, help='Whether to clip gradients')
     parser.add_argument('--clip_value', type=float, default=0.0, help='Value to clip gradients')
@@ -95,10 +91,6 @@ def main(args):
         center_loss_fn = None
         optimizer_center = None
 
-    if args.adv:
-        attack = FGSM(resnet, eps=args.eps)
-    else:
-        attack = None
 
     #######################################
     # Define dataset, and dataloader
@@ -197,7 +189,7 @@ def main(args):
             # Train
             pass_epoch(resnet, loss_fn, train_loader, val_loader, optimizer,
                        batch_metrics=metrics, device=device, writer=writer, args=args,
-                       center_loss_fn=center_loss_fn, optimizer_center=optimizer_center, attack=attack
+                       center_loss_fn=center_loss_fn, optimizer_center=optimizer_center
                        )
 
             if (epoch + 1) % args.step_size == 0:
@@ -223,7 +215,7 @@ def main(args):
         else:
             torch.save(resnet.state_dict(), f'./trained_models/resnet.pth')
 
-        break
+        
 
 
 
