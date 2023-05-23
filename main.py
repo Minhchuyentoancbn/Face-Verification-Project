@@ -259,7 +259,7 @@ def main(args):
         np.save('results/lfw_val.npy', tasks_lfw_val)
         np.save('results/lfw_far.npy', tasks_lfw_far)
 
-        if not args.finetune:
+        if args.finetune:
             if task == 0:
                 resnet_old = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob)
             # Save model for distillation
