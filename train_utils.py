@@ -76,7 +76,7 @@ def calculate_loss(
         else:
             loss_batch += args.beta * center_loss_fn(linear, y)
 
-    print(len(old_classes))
+    # Distillation loss
     if args.distill and len(old_classes) > 0:
 
         # Old model prediction
