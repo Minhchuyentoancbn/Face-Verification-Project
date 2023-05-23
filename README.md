@@ -14,7 +14,7 @@ __Preprocessing__: MTCNN face detection and alignment
 
 __Evaluation__: Accuracy, VAL, FAR on LFW dataset using the unrestricted with labeled outside data protocol
 
-__Methods__: Softmax loss, Label smoothing, Triplet loss, Center loss
+__Methods__: Softmax loss, Label smoothing, Triplet loss, Center loss + Distillation loss, Neighborhood Selection, Consistency Relaxation for continual learning
 
 
 ## Setup environment
@@ -105,13 +105,20 @@ python main.py --num_tasks 1 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.
 
 
 
-## Results on LFW
+## Experimental Results
+
+### LFW - Training 1 task
 
 | Method | Accuracy | VAL | FAR |
 | --- | --- | --- | --- |
 | Baseline | 0.96816 | 0.755 | 0.00133 |
 | Baseline + Label smoothing | 0.97349 | 0.82733 | 0.00133 |
+| Baseline + Triplet Loss + Center Loss | 0.975 | 0.77666 | 0.001 |
 | Baseline + Label smoothing + Triplet Loss + Center Loss | 0.97333 | 0.852 | 0.00133 |
+
+![LFW - Training 1 task](results/1task.png)
+
+### Traning 5 tasks
 
 
 ## Run Server
