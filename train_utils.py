@@ -51,12 +51,17 @@ def calculate_loss(
     -------
     loss_batch: torch.Tensor
         Loss
+
+    y_pred_origin: torch.Tensor
+        Predictions
     """
     if not model.training:
         with torch.no_grad():
             y_pred, linear = model(x)
     else:
         y_pred, linear = model(x)
+    
+    y_pred_origin = y_pred.clone()
 
     loss_batch = loss_fn(y_pred, y)
     # Triplet loss
@@ -100,7 +105,7 @@ def calculate_loss(
         loss_batch += args.lambda_old * F.relu(distill_loss).mean()
 
 
-    return loss_batch
+    return loss_batch, y_pred_origin
 
 
 def pass_epoch(
@@ -188,7 +193,7 @@ def pass_epoch(
         y = y.to(device)
         model.train()
 
-        loss_batch = calculate_loss(x, y, model, loss_fn, center_loss_fn, model_old=model_old, old_classes=old_classes, args=args)
+        loss_batch, y_pred = calculate_loss(x, y, model, loss_fn, center_loss_fn, model_old=model_old, old_classes=old_classes, args=args)
 
         if args.center:
             optimizer_center.zero_grad()
@@ -307,7 +312,7 @@ def validate(
         x = hflip(x).to(device)
         y = y.to(device)
 
-        loss_batch = calculate_loss(x, y, model, loss_fn, center_loss_fn, model_old=model_old, old_classes=old_classes, args=args)
+        loss_batch, y_pred = calculate_loss(x, y, model, loss_fn, center_loss_fn, model_old=model_old, old_classes=old_classes, args=args)
 
         loss_batch = loss_batch.detach().cpu()
         loss += loss_batch.item()
