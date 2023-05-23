@@ -76,8 +76,7 @@ def main(args):
     num_classes = len(os.listdir(casia_cropped_path))
     resnet = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob)
     resnet = weights_init(resnet).to(device)
-    resnet_old = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob, device=device)
-    resnet_old = weights_init(resnet_old).to(device)
+    resnet_old = None
 
     # Define classes and tasks
     num_tasks = args.num_tasks
@@ -261,6 +260,8 @@ def main(args):
         np.save('results/lfw_far.npy', tasks_lfw_far)
 
         if not args.finetune:
+            if task == 0:
+                resnet_old = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob)
             # Save model for distillation
             resnet_old.load_state_dict(copy.deepcopy(resnet.state_dict()))
             resnet_old.eval()

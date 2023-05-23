@@ -94,13 +94,13 @@ def calculate_loss(
 
         # Distillation loss
         distill_loss = (
-            F.log_softmax(y_pred_old / args.temperature, dim=1) * F.softmax(y_pred_old / args.temperature, dim=1)
-            - F.log_softmax(y_pred / args.temperature, dim=1) * F.softmax(y_pred_old / args.temperature, dim=1)
+            F.log_softmax(y_pred_old / args.T, dim=1) * F.softmax(y_pred_old / args.T, dim=1)
+            - F.log_softmax(y_pred / args.T, dim=1) * F.softmax(y_pred_old / args.T, dim=1)
         ).sum(dim=1)
 
         # Consistency relaxation
         if args.cr:
-            margin = -args.beta0 * (F.softmax(y_pred_old / args.temperature, dim=1) * F.log_softmax(y_pred_old / args.temperature, dim=1)).sum(dim=1)
+            margin = -args.beta0 * (F.softmax(y_pred_old / args.T, dim=1) * F.log_softmax(y_pred_old / args.T, dim=1)).sum(dim=1)
             distill_loss -= margin
 
         loss_batch += args.lambda_old * F.relu(distill_loss).mean()
