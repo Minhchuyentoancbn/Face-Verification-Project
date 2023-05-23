@@ -261,7 +261,7 @@ def main(args):
 
         if args.finetune:
             if task == 0:
-                resnet_old = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob)
+                resnet_old = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob, device=device)
             # Save model for distillation
             resnet_old.load_state_dict(copy.deepcopy(resnet.state_dict()))
             resnet_old.eval()
