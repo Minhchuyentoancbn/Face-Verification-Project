@@ -112,7 +112,7 @@ python main.py --num_tasks 1 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.
 | Method | Accuracy | VAL | FAR |
 | --- | --- | --- | --- |
 | Baseline | 0.96816 | 0.75500 | 0.00133 |
-| Baseline + Label smoothing | 0.973166 | 0.82600 | 0.00133 |
+| Baseline + Label smoothing | 0.97316 | 0.82600 | 0.00133 |
 | Baseline + Triplet Loss + Center Loss | 0.97483 | 0.77700 | 0.00100 |
 | Baseline + Label smoothing + Triplet Loss + Center Loss | 0.97349 | 0.85300 | 0.00133 |
 
