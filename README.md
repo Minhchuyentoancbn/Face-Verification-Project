@@ -107,7 +107,7 @@ python main.py --num_tasks 1 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.
 
 ## Experimental Results
 
-### LFW - Training 1 task
+### Training 1 task - LFW
 
 | Method | Accuracy | VAL | FAR |
 | --- | --- | --- | --- |
