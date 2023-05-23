@@ -245,9 +245,12 @@ def main(args):
             torch.save(resnet.state_dict(), f'./trained_models/resnet.pth')
 
         for tid in range(num_tasks):
-            loss, task_metrics = validate(resnet, loss_fn, val_loaders[tid], metrics, 
-                                     device=device, args=args, optimizer=optimizer, 
-                                     center_loss_fn=center_loss_fn)
+            loss, task_metrics = validate(
+                resnet, loss_fn, val_loaders[tid], metrics, 
+                device=device, args=args, optimizer=optimizer, 
+                center_loss_fn=center_loss_fn, model_old=resnet_old, 
+                old_classes=old_classes
+            )
             tasks_accuracy[task, tid] = task_metrics['accuracy']
 
         # Save accuracy matrix
