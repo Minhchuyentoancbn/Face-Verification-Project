@@ -336,6 +336,6 @@ def validate(
         writer.iteration += 1
 
     # Free intermediate variables
-    del x, y, y_pred, loss_batch, metrics_batch, linear
+    del x, y, y_pred, loss_batch, metrics_batch
 
     return loss, metrics
