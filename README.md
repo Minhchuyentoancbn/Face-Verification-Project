@@ -111,10 +111,10 @@ python main.py --num_tasks 1 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.
 
 | Method | Accuracy | VAL | FAR |
 | --- | --- | --- | --- |
-| Baseline | 0.96816 | 0.755 | 0.00133 |
-| Baseline + Label smoothing | 0.97349 | 0.82733 | 0.00133 |
-| Baseline + Triplet Loss + Center Loss | 0.975 | 0.77666 | 0.001 |
-| Baseline + Label smoothing + Triplet Loss + Center Loss | 0.97333 | 0.852 | 0.00133 |
+| Baseline | 0.96816 | 0.75500 | 0.00133 |
+| Baseline + Label smoothing | 0.973166 | 0.82600 | 0.00133 |
+| Baseline + Triplet Loss + Center Loss | 0.97483 | 0.77700 | 0.00100 |
+| Baseline + Label smoothing + Triplet Loss + Center Loss | 0.97349 | 0.85300 | 0.00133 |
 
 ![LFW - Training 1 task](results/1task.png)
 
