@@ -102,8 +102,6 @@ def main(args):
         center_loss_fn = None
         optimizer_center = None
 
-
-    #######################################
     # Define dataset, and dataloader
     trans = transforms.Compose([
         np.float32,
@@ -162,7 +160,6 @@ def main(args):
         else:
             torch.save(train_loaders[task], f'./data/train_loader.pth')
             torch.save(val_loaders[task], f'./data/val_loader.pth')
-    #######################################
 
     # Experiment name
     if not os.path.exists(LOG_DIR + args.exp_name):
@@ -176,7 +173,7 @@ def main(args):
     tasks_lfw_far = np.zeros(num_tasks)
 
     # Train
-    for task in range(1, num_tasks):
+    for task in range(0, num_tasks):
         old_classes = classes[:task * num_classes_per_task]
         train_loader = train_loaders[task]
         val_loader = val_loaders[task]
@@ -185,6 +182,8 @@ def main(args):
             # Recreate model
             resnet = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob)
             resnet = weights_init(resnet).to(device)
+        #######################################
+        # NOTE: Change number of tasks in the for loop
         else:
             if task > 0:
                 # Load model
@@ -192,6 +191,7 @@ def main(args):
                 resnet_old = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob, device=device)
                 resnet_old.load_state_dict(torch.load(f'./trained_models/task{task}_resnet.pth'))
                 resnet_old.eval()
+        #######################################
         # if num_tasks > 1:
         #     train_loader = torch.load(f'./data/train_loader_{task}.pth')
         #     val_loader = torch.load(f'./data/val_loader_{task}.pth')
@@ -272,6 +272,9 @@ def main(args):
             # Save model for distillation
             resnet_old.load_state_dict(copy.deepcopy(resnet.state_dict()))
             resnet_old.eval()
+
+        if task == 0:
+            break
 
 
 
