@@ -75,6 +75,7 @@ options:
   --exp_name EXP_NAME   Experiment name
 ```
 
+### Training as 1 task
 
 __Baseline__
 
@@ -103,6 +104,22 @@ python main.py --num_tasks 1 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.
 python main.py --num_tasks 1 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 1 --smooth 1e-3 --center True --beta 1e-3 --triplet True
 ```
 
+
+### Training 5 tasks
+
+
+__Baseline__
+
+```
+python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 3 --finetune False 
+```
+
+
+__Finetune__
+
+```
+python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 3
+```
 
 
 ## Experimental Results
