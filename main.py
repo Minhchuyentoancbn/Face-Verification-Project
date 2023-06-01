@@ -173,7 +173,7 @@ def main(args):
     tasks_lfw_far = np.zeros(num_tasks)
 
     # Train
-    for task in range(0, num_tasks):
+    for task in range(1, num_tasks):
         old_classes = classes[:task * num_classes_per_task]
         train_loader = train_loaders[task]
         val_loader = val_loaders[task]
@@ -273,6 +273,7 @@ def main(args):
             resnet_old.load_state_dict(copy.deepcopy(resnet.state_dict()))
             resnet_old.eval()
 
+        #############
         if task == 0:
             break
 
