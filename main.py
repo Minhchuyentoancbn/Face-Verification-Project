@@ -173,7 +173,7 @@ def main(args):
     tasks_lfw_far = np.zeros(num_tasks)
 
     # Train
-    for task in range(1, num_tasks):
+    for task in range(0, num_tasks):
         old_classes = classes[:task * num_classes_per_task]
         train_loader = train_loaders[task]
         val_loader = val_loaders[task]
@@ -184,13 +184,13 @@ def main(args):
             resnet = weights_init(resnet).to(device)
         #######################################
         # NOTE: Change number of tasks in the for loop
-        else:
-            if task > 0:
-                # Load model
-                resnet.load_state_dict(torch.load(f'./trained_models/task{task}_resnet.pth'))
-                resnet_old = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob, device=device)
-                resnet_old.load_state_dict(torch.load(f'./trained_models/task{task}_resnet.pth'))
-                resnet_old.eval()
+        # else:
+        #     if task > 0:
+        #         # Load model
+        #         resnet.load_state_dict(torch.load(f'./trained_models/task{task}_resnet.pth'))
+        #         resnet_old = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob, device=device)
+        #         resnet_old.load_state_dict(torch.load(f'./trained_models/task{task}_resnet.pth'))
+        #         resnet_old.eval()
         #######################################
         # if num_tasks > 1:
         #     train_loader = torch.load(f'./data/train_loader_{task}.pth')
@@ -274,8 +274,8 @@ def main(args):
             resnet_old.eval()
 
         #############
-        if task == 0:
-            break
+        # if task == 0:
+        #     break
 
 
 
