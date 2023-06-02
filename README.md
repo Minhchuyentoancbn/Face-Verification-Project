@@ -122,6 +122,13 @@ python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.
 ```
 
 
+__LWF__
+
+```
+python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 3 --distill True --lambda_old 0.1
+```
+
+
 ## Experimental Results
 
 ### Training 1 task - LFW
