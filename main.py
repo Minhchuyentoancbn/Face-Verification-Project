@@ -174,7 +174,7 @@ def main(args):
 
     # Train
     for task in range(0, num_tasks):
-        old_classes = classes[:task * num_classes_per_task]
+        old_classes = classes[(task - 1) * num_classes_per_task : task * num_classes_per_task]
         train_loader = train_loaders[task]
         val_loader = val_loaders[task]
 
