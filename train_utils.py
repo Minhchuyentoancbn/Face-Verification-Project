@@ -87,7 +87,7 @@ def calculate_loss(
         y_pred = y_pred[:, old_classes]
 
         # Neighborhood selection
-        if args.ns:
+        if args.ns and args.K > 0:
             # Select top args.K classes for each sample
             y_pred_old, selected_indices = y_pred_old.topk(args.K, dim=1)
             y_pred = y_pred.gather(1, selected_indices)
