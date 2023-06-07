@@ -1,4 +1,4 @@
-# Building a Life-long Face Verification System
+# Building a Continual Face Verification System
 
 ![Face Recognition illustration](data/face_verification.jpg)
 
