@@ -129,6 +129,14 @@ python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.
 ```
 
 
+__Basic + NS__
+  
+```
+python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 25 --distill True --lambda_old 0.1 --T 2 --ns True --K 1500
+```
+
+
+
 ## Experimental Results
 
 ### Training 1 task - LFW
@@ -137,12 +145,22 @@ python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.
 | --- | --- | --- | --- |
 | Baseline | 0.96816 | 0.75500 | 0.00133 |
 | Baseline + Label smoothing | 0.97316 | 0.82600 | 0.00133 |
-| Baseline + Triplet Loss + Center Loss | 0.97483 | 0.77700 | 0.00100 |
-| Baseline + Label smoothing + Triplet Loss + Center Loss | 0.97349 | 0.85300 | 0.00133 |
+| Baseline + Triplet Loss + Center Loss | __0.97483__ | 0.77700 | __0.00100__ |
+| Baseline + Label smoothing + Triplet Loss + Center Loss | 0.97349 | __0.85300__ | 0.00133 |
 
 ![LFW - Training 1 task](results/1task.png)
 
 ### Traning 5 tasks
+
+__Basic + NS results of final task for different values of K__
+
+
+| K | 50 | 100 | 200 | 500 | 700 | 1000 | 1200 | 1500 | Full |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Accuracy | 0.92199 | 0.92950 | 0.93883 | 0.93666 | 0.93366 | 0.92449 | 0.93200 | __0.94416__ | 0.93966 |
+| VAL | 0.471 | 0.581 | 0.565 | 0.522 | 0.600 | 0.434 | 0.619 | __0.653__ | 0.584 |
+
+![LFW - Training 5 tasks basic ns](results/basic_ns.png)
 
 
 ## Run Server
