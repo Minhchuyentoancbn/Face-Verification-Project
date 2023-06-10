@@ -1,3 +1,5 @@
+import os
+
 IMAGE_SIZE = 160  # All images will be resized to this size
 DETECTION_THRESHOLD = 0.9999  # Probability threshold to detect a face
 VERIFICATION_THRESHOLD = 0.83  # Distance threshold to decide whether faces belong to the same person
@@ -12,8 +14,8 @@ LOG_DIR = 'runs/'
 
 
 # casia_cropped_path = os.path.join(DATA_PATH, 'CASIA-WebFace-cropped/')
-# casia_cropped_path = '/kaggle/input/casia-webface-cropped-with-mtcnn/CASIA-WebFace-cropped'
-casia_cropped_path = '/kaggle/input/casia-webface-mtcnn-v2/CASIA-WebFace-cropped'
+casia_cropped_path = '/kaggle/input/casia-webface-cropped-with-mtcnn/CASIA-WebFace-cropped'
+# casia_cropped_path = '/kaggle/input/casia-webface-mtcnn-v2/CASIA-WebFace-cropped'
 # casia_cropped_path = '/kaggle/input/casia-webface-v3/CASIA-WebFace-cropped'
 
 
