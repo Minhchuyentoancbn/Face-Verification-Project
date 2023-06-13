@@ -136,6 +136,12 @@ python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.
 ```
 
 
+__Basic + NS + CR__
+
+```
+python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 25 --distill True --lambda_old 0.1 --T 2 --ns True --K 1500 --cr True --beta0 5e-3
+```
+
 
 ## Experimental Results
 
@@ -162,6 +168,16 @@ __Basic + NS results of final task for different values of K__
 
 ![LFW - Training 5 tasks basic ns](results/basic_ns.png)
 
+
+__Basic + NS + CR results of final task for different values of Beta__
+
+
+| Beta | 0 | 2e-3 | 5e-3 | 10e-3 | 50e-3 |
+| --- | --- | --- | --- | --- | --- |
+| Accuracy | 0.94416 | 0.94416 | __0.94766__ | 0.93400 | 0.93733 |
+| VAL | 0.653 | 0.653 | __0.658__ | 0.552 | 0.485 |
+
+![LFW - Training 5 tasks basic ns cr](results/basic_ns_cr.png)
 
 ## Run Server
 ```
