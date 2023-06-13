@@ -132,14 +132,21 @@ python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.
 __Basic + NS__
   
 ```
-python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 25 --distill True --lambda_old 0.1 --T 2 --ns True --K 1500
+python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 3 --distill True --lambda_old 0.1 --T 2 --ns True --K 1500
+```
+
+
+__Basic + CR__
+  
+```
+python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 3 --distill True --lambda_old 0.1 --T 2 --cr True --beta0 5e-3
 ```
 
 
 __Basic + NS + CR__
 
 ```
-python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 25 --distill True --lambda_old 0.1 --T 2 --ns True --K 1500 --cr True --beta0 5e-3
+python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 3 --distill True --lambda_old 0.1 --T 2 --ns True --K 1500 --cr True --beta0 5e-3
 ```
 
 
@@ -178,6 +185,20 @@ __Basic + NS + CR results of final task for different values of Beta__
 | VAL | 0.653 | 0.653 | __0.658__ | 0.552 | 0.485 |
 
 ![LFW - Training 5 tasks basic ns cr](results/basic_ns_cr.png)
+
+
+__Aliblation study__
+
+
+| Method | Accuracy | VAL |
+| --- | --- | --- |
+| Basic | 0.94917 | 0.59333 |
+| Basic + NS | 0.94417 | 0.65367 |
+| Basic + CR | __0.95__| 0.55167 |
+| Basic + NS + CR | 0.94767 | __0.65800__ |
+
+![LFW - Training 5 tasks aliblation](results/aliblation.png)
+
 
 ## Run Server
 ```
