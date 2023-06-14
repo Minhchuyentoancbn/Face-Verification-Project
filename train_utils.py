@@ -73,7 +73,11 @@ def calculate_loss(
     if args.num_tasks == 1:
         loss_batch = loss_fn(y_pred, y)
     else:
-        loss_batch = F.log_softmax(y_pred[:, current_classes], dim=1)[torch.arange(y.size(0)), y].mean()
+        # Make a mask for the current classes
+        mask = torch.from_numpy(current_classes).to(y.device).long().unsqueeze(0
+            ).expand(y_pred.shape[0], -1)
+        mask = (mask == y.unsqueeze(1).expand(-1, mask.shape[1]))
+        loss_batch = (F.log_softmax(y_pred[:, current_classes], dim=1) * mask).sum(dim=1).mean()
 
     # Triplet loss
     if args.triplet:
@@ -236,6 +240,9 @@ def pass_epoch(
 
         loss_batch = loss_batch.detach().cpu()
         loss += loss_batch.item()
+        if distill_loss is not None:
+            distill_loss = distill_loss.detach().cpu()
+            loss += distill_loss.item()
 
         # Update metrics and print values
         metrics_batch = {}
@@ -257,7 +264,7 @@ def pass_epoch(
             writer.add_scalars('lr', {mode: optimizer.param_groups[0]['lr']}, writer.iteration)
 
     # Free intermediate variables
-    del x, y, y_pred, loss_batch, metrics_batch
+    del x, y, y_pred, loss_batch, metrics_batch, distill_loss
     return loss, metrics
 
 
@@ -344,6 +351,9 @@ def validate(
 
         loss_batch = loss_batch.detach().cpu()
         loss += loss_batch.item()
+        if distill_loss is not None:
+            distill_loss = distill_loss.detach().cpu()
+            loss += distill_loss.item()
 
         metrics_batch = {}
         for metric_name, metric_fn in batch_metrics.items():
@@ -364,6 +374,6 @@ def validate(
         writer.iteration += 1
 
     # Free intermediate variables
-    del x, y, y_pred, loss_batch, metrics_batch
+    del x, y, y_pred, loss_batch, metrics_batch, distill_loss
 
     return loss, metrics
