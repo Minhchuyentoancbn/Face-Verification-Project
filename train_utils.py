@@ -360,7 +360,7 @@ def validate(
             metrics_batch[metric_name] = metric_fn(y_pred, y).detach().cpu()
             metrics[metric_name] = metrics.get(metric_name, 0) + metrics_batch[metric_name]
 
-    logger(loss, metrics, i_batch)
+        logger(loss, metrics, i_batch)
 
     loss = loss / (i_batch + 1)
     metrics = {k: v / (i_batch + 1) for k, v in metrics.items()}
@@ -374,6 +374,6 @@ def validate(
         writer.iteration += 1
 
     # Free intermediate variables
-    del x, y, y_pred
+    del x, y, y_pred, loss_batch, metrics_batch, distill_loss
 
     return loss, metrics
