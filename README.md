@@ -200,6 +200,20 @@ __Aliblation study__
 ![LFW - Training 5 tasks aliblation](results/aliblation.png)
 
 
+__Main Results__
+
+
+| Method | Accuracy | VAL |
+| --- | --- | --- |
+| Baseline | 0.93567 | 0.48233 |
+| Finetune | 0.93733 | 0.51433 |
+| LWF | __0.94917__ | 0.59333 |
+| Ours | 0.94767 | __0.65800__ |
+
+
+![Comparision](results/main_results.png)
+
+
 ## Run Server
 ```
 python run_server.py
