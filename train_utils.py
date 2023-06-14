@@ -345,6 +345,7 @@ def validate(
         # Flip images horizontally
         x = hflip(x).to(device)
         y = y.to(device)
+        model.eval()
 
         loss_batch, distill_loss, y_pred = calculate_loss(x, y, model, loss_fn, center_loss_fn, model_old=model_old, current_classes=current_classes, old_classes=old_classes, args=args)
 
@@ -373,6 +374,6 @@ def validate(
         writer.iteration += 1
 
     # Free intermediate variables
-    del x, y, y_pred, loss_batch, metrics_batch, distill_loss
+    del x, y, y_pred
 
     return loss, metrics
