@@ -252,7 +252,7 @@ def pass_epoch(
 
     # Validation per epoch
     print(f'Lr: {optimizer.param_groups[0]["lr"]:0.6f}')
-    validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args, center_loss_fn, model_old, old_classes)
+    validate(model, loss_fn, valid_loader, batch_metrics, device, writer, optimizer, args, center_loss_fn, model_old, current_classes, old_classes)
 
     # Log to tensorboard
     if writer is not None:
@@ -360,7 +360,7 @@ def validate(
             metrics_batch[metric_name] = metric_fn(y_pred, y).detach().cpu()
             metrics[metric_name] = metrics.get(metric_name, 0) + metrics_batch[metric_name]
 
-        logger(loss, metrics, i_batch)
+    logger(loss, metrics, i_batch)
 
     loss = loss / (i_batch + 1)
     metrics = {k: v / (i_batch + 1) for k, v in metrics.items()}
