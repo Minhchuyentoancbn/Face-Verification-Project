@@ -203,7 +203,7 @@ def main(args):
         #     train_loader = torch.load(f'./data/train_loader.pth')
         #     val_loader = torch.load(f'./data/val_loader.pth')
         print('=' * 10)
-        print(f'Task {task} starts')
+        print(f'Task {task + 1} starts')
 
         # Define optimizer, scheduler
         if args.optimizer == 'sgd':
