@@ -174,6 +174,7 @@ def main(args):
 
     # Train
     for task in range(0, num_tasks):
+        current_classes = classes[task * num_classes_per_task: (task + 1) * num_classes_per_task]
         if args.ns:
             old_classes = classes[(task - 1) * num_classes_per_task : task * num_classes_per_task]
         else:
@@ -224,7 +225,7 @@ def main(args):
             pass_epoch(resnet, loss_fn, train_loader, val_loader, optimizer,
                        batch_metrics=metrics, device=device, writer=writer, args=args,
                        center_loss_fn=center_loss_fn, optimizer_center=optimizer_center,
-                       old_classes=old_classes, model_old=resnet_old
+                       current_classes=current_classes, old_classes=old_classes, model_old=resnet_old
                        )
 
             if (epoch + 1) % args.step_size == 0:
@@ -259,7 +260,7 @@ def main(args):
                 resnet, loss_fn, val_loaders[tid], metrics, 
                 device=device, args=args, optimizer=optimizer, 
                 center_loss_fn=center_loss_fn, model_old=resnet_old, 
-                old_classes=old_classes
+                current_classes=current_classes, old_classes=old_classes
             )
             tasks_accuracy[task, tid] = task_metrics['accuracy']
 
@@ -274,8 +275,7 @@ def main(args):
                 resnet_old = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob, device=device)
             # Save model for distillation
             resnet_old.load_state_dict(copy.deepcopy(resnet.state_dict()))
-            resnet_old.eval()
-
+            resnet_old.eval()         
 
 
 

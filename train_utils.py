@@ -15,6 +15,7 @@ def calculate_loss(
     loss_fn: callable,
     center_loss_fn: nn.Module=None,
     model_old: nn.Module=None,
+    current_classes: np.ndarray=None,
     old_classes: np.ndarray=None,
     args=None,
 ):
@@ -41,6 +42,9 @@ def calculate_loss(
     model_old : nn.Module, optional
         Old model, by default None
 
+    current_classes : np.ndarray, optional
+        Current classes, by default None
+
     old_classes : np.ndarray, optional
         Old classes, by default None
 
@@ -51,6 +55,9 @@ def calculate_loss(
     -------
     loss_batch: torch.Tensor
         Loss
+
+    distill_loss: torch.Tensor
+        Distillation loss
 
     y_pred_origin: torch.Tensor
         Predictions
@@ -63,7 +70,11 @@ def calculate_loss(
     
     y_pred_origin = y_pred.clone()
 
-    loss_batch = loss_fn(y_pred, y)
+    if args.num_tasks == 1:
+        loss_batch = loss_fn(y_pred, y)
+    else:
+        loss_batch = F.log_softmax(y_pred[:, current_classes], dim=1)[torch.arange(y.size(0)), y].mean()
+
     # Triplet loss
     if args.triplet:
         loss_batch += triplet_loss(linear, y, margin=args.margin) * args.alpha
@@ -75,6 +86,8 @@ def calculate_loss(
                 loss_batch += args.beta * center_loss_fn(linear, y)
         else:
             loss_batch += args.beta * center_loss_fn(linear, y)
+
+    distill_loss = None
 
     # Distillation loss
     if args.distill and len(old_classes) > 0:
@@ -103,10 +116,10 @@ def calculate_loss(
             margin = -args.beta0 * (F.softmax(y_pred_old / args.T, dim=1) * F.log_softmax(y_pred_old / args.T, dim=1)).sum(dim=1)
             distill_loss -= margin
 
-        loss_batch += args.lambda_old * F.relu(distill_loss).mean()
+        distill_loss = args.lambda_old * F.relu(distill_loss).mean()
 
 
-    return loss_batch, y_pred_origin
+    return loss_batch, distill_loss, y_pred_origin 
 
 
 def pass_epoch(
@@ -122,6 +135,7 @@ def pass_epoch(
     center_loss_fn:nn.Module=None, 
     optimizer_center: torch.optim.Optimizer=None,
     model_old: nn.Module=None,
+    current_classes: np.ndarray=None,
     old_classes: np.ndarray=None
 ):
     """
@@ -167,6 +181,9 @@ def pass_epoch(
     model_old: nn.Module
         Old model. (default: {None})
 
+    current_classes: np.ndarray
+        Current classes. (default: {None})
+
     old_classes: np.ndarray
         Old classes. (default: {None})
     
@@ -194,7 +211,7 @@ def pass_epoch(
         y = y.to(device)
         model.train()
 
-        loss_batch, y_pred = calculate_loss(x, y, model, loss_fn, center_loss_fn, model_old=model_old, old_classes=old_classes, args=args)
+        loss_batch, distill_loss, y_pred = calculate_loss(x, y, model, loss_fn, center_loss_fn, model_old=model_old, current_classes=current_classes, old_classes=old_classes, args=args)
 
         if args.center:
             optimizer_center.zero_grad()
@@ -202,14 +219,20 @@ def pass_epoch(
         # Backward pass
         optimizer.zero_grad()
         loss_batch.backward()
-        # Clip gradients
-        if args.clip:
-            nn.utils.clip_grad_norm_(model.parameters(), args.clip_value)
+
         optimizer.step()
         if args.center:
             for param in center_loss_fn.parameters():
                 param.grad.data *= (1. / args.beta)
             optimizer_center.step()
+
+        if distill_loss is not None:
+            optimizer.zero_grad()
+            distill_loss.backward()
+            # Zero grad for model.logits layer, which is a Linear layer
+            for param in model.logits.parameters():
+                param.grad.data *= 0.0
+            optimizer.step()
 
         loss_batch = loss_batch.detach().cpu()
         loss += loss_batch.item()
@@ -249,6 +272,7 @@ def validate(
     args=None,
     center_loss_fn:nn.Module=None,
     model_old: nn.Module=None,
+    current_classes: np.ndarray=None,
     old_classes: np.ndarray=None
 ):
     """
@@ -288,6 +312,9 @@ def validate(
     model_old: nn.Module
         Old model. (default: {None})
 
+    current_classes: np.ndarray
+        Current classes. (default: {None})
+
     old_classes: np.ndarray
         Old classes. (default: {None})
 
@@ -313,7 +340,7 @@ def validate(
         x = hflip(x).to(device)
         y = y.to(device)
 
-        loss_batch, y_pred = calculate_loss(x, y, model, loss_fn, center_loss_fn, model_old=model_old, old_classes=old_classes, args=args)
+        loss_batch, distill_loss, y_pred = calculate_loss(x, y, model, loss_fn, center_loss_fn, model_old=model_old, current_classes=current_classes, old_classes=old_classes, args=args)
 
         loss_batch = loss_batch.detach().cpu()
         loss += loss_batch.item()
