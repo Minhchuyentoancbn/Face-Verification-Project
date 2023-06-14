@@ -77,7 +77,7 @@ def calculate_loss(
         mask = torch.from_numpy(current_classes).to(y.device).long().unsqueeze(0
             ).expand(y_pred.shape[0], -1)
         mask = (mask == y.unsqueeze(1).expand(-1, mask.shape[1]))
-        loss_batch = (F.log_softmax(y_pred[:, current_classes], dim=1) * mask).sum(dim=1).mean()
+        loss_batch = -(F.log_softmax(y_pred[:, current_classes], dim=1) * mask).sum(dim=1).mean()
 
     # Triplet loss
     if args.triplet:
@@ -117,8 +117,7 @@ def calculate_loss(
 
         # Consistency relaxation
         if args.cr:
-            margin = -args.beta0 * (F.softmax(y_pred_old / args.T, dim=1) * F.log_softmax(y_pred_old / args.T, dim=1)).sum(dim=1)
-            distill_loss -= margin
+            distill_loss -= -args.beta0 * (F.softmax(y_pred_old / args.T, dim=1) * F.log_softmax(y_pred_old / args.T, dim=1)).sum(dim=1)
 
         distill_loss = args.lambda_old * F.relu(distill_loss).mean()
 
