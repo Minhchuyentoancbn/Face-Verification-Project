@@ -94,7 +94,7 @@ def calculate_loss(
     distill_loss = None
 
     # Distillation loss
-    if args.distill and len(old_classes) > 0:
+    if args.distill and len(old_classes) > 0 and model_old is not None:
 
         # Old model prediction
         with torch.no_grad():
