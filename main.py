@@ -52,8 +52,6 @@ def parse_arguments(argv):
     parser.add_argument('--K', type=int, default=100, help='Number of selected neighbors')
     parser.add_argument('--beta0', type=float, default=0.1, help='Beta0, margin for Consistency Relaxation')
 
-    parser.add_argument('--clip', type=bool, default=False, help='Whether to clip gradients')
-    parser.add_argument('--clip_value', type=float, default=0.0, help='Value to clip gradients')
     parser.add_argument('--eval_cycle', type=int, default=20, help='Evaluate every n epochs')
     parser.add_argument('--step_size', type=int, default=1, help='Step size for LR scheduler')
     parser.add_argument('--exp_name', type=str, default='1task', help='Experiment name')
