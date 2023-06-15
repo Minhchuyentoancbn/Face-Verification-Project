@@ -221,7 +221,10 @@ def pass_epoch(
 
         # Backward pass
         optimizer.zero_grad()
-        loss_batch.backward()
+        if distill_loss is None:
+            loss_batch.backward()
+        else:
+            loss_batch.backward(retain_graph=True)
 
         optimizer.step()
         if args.center:
