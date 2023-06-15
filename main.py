@@ -44,7 +44,6 @@ def parse_arguments(argv):
     parser.add_argument('--beta', type=float, default= 0.0005, help='Beta for center loss')
     parser.add_argument('--center_lr', type=float, default=0.5, help='Learning rate for center loss')
 
-    parser.add_argument('--finetune', type=bool, default=True, help='Finetune the model')
     parser.add_argument('--distill', type=bool, default=False, help='Use distillation loss')
     parser.add_argument('--ns', type=bool, default=False, help='Use Neighborhood Selection')
     parser.add_argument('--cr', type=bool, default=False, help='Use Consistency Relaxation')
@@ -182,11 +181,6 @@ def main(args):
         train_loader = train_loaders[task]
         val_loader = val_loaders[task]
 
-        if not args.finetune and task > 0:
-            del resnet
-            # Recreate model
-            resnet = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob)
-            resnet = weights_init(resnet).to(device)
         #######################################
         # NOTE: Change number of tasks in the for loop
         # else:
@@ -276,12 +270,11 @@ def main(args):
         np.save('results/lfw_val.npy', tasks_lfw_val)
         np.save('results/lfw_far.npy', tasks_lfw_far)
 
-        if args.finetune:
-            if task == 0:
-                resnet_old = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob, device=device)
-            # Save model for distillation
-            resnet_old.load_state_dict(copy.deepcopy(resnet.state_dict()))
-            resnet_old.eval()         
+        if task == 0:
+            resnet_old = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob, device=device)
+        # Save model for distillation
+        resnet_old.load_state_dict(copy.deepcopy(resnet.state_dict()))
+        resnet_old.eval()         
 
 
 
