@@ -183,6 +183,7 @@ def main(args):
         val_loader = val_loaders[task]
 
         if not args.finetune and task > 0:
+            del resnet
             # Recreate model
             resnet = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob)
             resnet = weights_init(resnet).to(device)
@@ -256,11 +257,16 @@ def main(args):
             torch.save(resnet.state_dict(), f'./trained_models/resnet.pth')
 
         for tid in range(num_tasks):
+            if args.ns:
+                old_cl = classes[(tid - 1) * num_classes_per_task : tid * num_classes_per_task]
+            else:
+                old_cl = classes[:tid * num_classes_per_task]
             loss, task_metrics = validate(
                 resnet, loss_fn, val_loaders[tid], metrics, 
                 device=device, args=args, optimizer=optimizer, 
                 center_loss_fn=center_loss_fn, model_old=resnet_old, 
-                current_classes=current_classes, old_classes=old_classes
+                current_classes=classes[tid * num_classes_per_task: (tid + 1) * num_classes_per_task], 
+                old_classes=old_cl
             )
             tasks_accuracy[task, tid] = task_metrics['accuracy']
 
