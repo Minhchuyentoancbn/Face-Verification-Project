@@ -85,9 +85,9 @@ def calculate_loss(
             # mask[i, j] = (smooth / len(current_classes)) if j is in current_classes and j != y[i]
             mask = torch.zeros(y_pred.shape)
             mask[:, current_classes] = args.smooth / len(current_classes)
-            mask[range(y_pred.shape[0]), y] = 1 - args.smooth / len(current_classes)
-            mask = mask.to(y.device)
-            loss_batch = -(F.log_softmax(y_pred, dim=1) * mask).sum(dim=1).mean()
+            mask[range(y_pred.shape[0]), y] = 1 - args.smooth / len(current_classes) * (len(current_classes) - 1)
+            mask = mask[:, current_classes].to(y.device)
+            loss_batch = -(F.log_softmax(y_pred[:, current_classes], dim=1) * mask).sum(dim=1).mean()
 
             
 
