@@ -82,7 +82,7 @@ def calculate_loss(
         else:
             # Make a mask such that mask[i, j] = 0 if j is not in current_classes
             # mask[i, j] = 1 - (smooth / len(current_classes)) if j is in current_classes and j == y[i]
-            # mask[i, j] = (smooth / len(current_classes)) if j is in current_classes and j != y[i]
+            # mask[i, j] = (smooth / len(current_classes) * (len(current_classes) - 1)) if j is in current_classes and j != y[i]
             mask = torch.zeros(y_pred.shape)
             mask[:, current_classes] = args.smooth / len(current_classes)
             mask[range(y_pred.shape[0]), y] = 1 - args.smooth / len(current_classes) * (len(current_classes) - 1)
