@@ -16,7 +16,7 @@ def main():
         # stub = VerificationServiceStub(channel)
         start = perf_counter()
         # res: RegisterResponse = stub.Register(RegisterRequest(user_id='test2', video_path='data/test/WIN_20230517_10_37_23_Pro.mp4'))
-        res: IdentificationResponse = stub.Identify(IdentificationRequest(video_path='data/test/WIN_20230517_10_37_23_Pro.mp4'))
+        res: IdentificationResponse = stub.Identify(IdentificationRequest(video_path='data/test/5251be66-61f6-4689-9fda-04504b0f521e.webm'))
         # res: VerificationResponse = stub.Verify(VerificationRequest(user_id='test', video_path='data/test/WIN_20230517_10_37_23_Pro.mp4'))
         end = perf_counter()
 
