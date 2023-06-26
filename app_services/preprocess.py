@@ -56,6 +56,10 @@ def process_video(
     # Get the frame and number of frames
     # fps = cap.get(cv2.CAP_PROP_FPS)
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    if frame_count <= 0:
+        print("Error reading video file")
+        print("Please check the path and try again")
+        return []
 
     # set the sample time between samples
     sample_time = 1000 / 3  # 1000 ms = 1 second
