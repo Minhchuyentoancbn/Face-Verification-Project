@@ -2,7 +2,8 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, SequentialSampler
 from torchvision import datasets, transforms
-from facenet_pytorch import fixed_image_standardization
+from torchvision.transforms.functional import hflip
+from facenet_pytorch import fixed_image_standardization, InceptionResnetV1
 
 import numpy as np
 import os
@@ -11,6 +12,7 @@ from config import *
 from utils import get_device
 from sklearn.model_selection import KFold
 from scipy import interpolate
+from collections import defaultdict
 
 
 # LFW functions taken from David Sandberg's FaceNet implementation
@@ -119,6 +121,7 @@ def calculate_val(thresholds, embeddings1, embeddings2, actual_issame, far_targe
     far_mean = np.mean(far)
     val_std = np.std(val)
     return val_mean, val_std, far_mean
+
 
 def calculate_val_far(threshold, dist, actual_issame):
     predict_issame = np.less(dist, threshold)
@@ -241,7 +244,7 @@ def evaluate_lfw(model: nn.Module,
             classes.extend(yb.numpy())
             embeddings.extend(b_embeddings)
     
-    embeddings_dict = dict(zip(crop_paths,embeddings))
+    embeddings_dict = dict(zip(crop_paths, embeddings))
     pairs = read_pairs(LFW_PAIRS_PATH)
 
     path_list = np.load('data/lfw/path_list.npy')
@@ -258,3 +261,84 @@ def evaluate_lfw(model: nn.Module,
     model.classify = classify
 
     return np.mean(accuracy), val, far
+
+
+
+def validate_first_task(
+    num_tasks: int=5,
+    num_pairs: int=3000,
+    model_name: str='finetune',
+    task: int=0
+):
+    classes = np.load('./data/classes.npy')
+    num_classes = len(classes)
+    val_loader = torch.load(f'./data/val_loader_{task}.pth')
+
+    images = []
+    labels = []
+
+    for x, y in val_loader:
+        images.append(x)
+        labels.append(y)
+
+    images = torch.cat(images, dim=0)
+    labels = torch.cat(labels, dim=0)
+
+    image_embeddings = defaultdict(list)
+    for i in range(num_tasks):
+        # Load models LWF
+        resnet = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=0.2)
+        resnet.to('cuda')
+        resnet.load_state_dict(torch.load(f'trained_models/{model_name}/task{i + 1}_resnet.pth'))
+        resnet.eval()
+        resnet.classify = False
+        for j in range(0, len(images), 64):
+            x = images[j:j + 64].to('cuda')
+            with torch.no_grad():
+                y_pred, _ = resnet(x)
+            y_pred = y_pred.cpu()
+            image_embeddings[i].append(y_pred)
+
+        image_embeddings[i] = torch.cat(image_embeddings[i], dim=0)
+        del resnet
+        torch.cuda.empty_cache()
+
+    # Save embeddings
+    for i in range(num_tasks):
+        np.save(f'./data/NMC_evaluate/task_{i}_embeddings.npy', image_embeddings[i].numpy())
+
+    num_images = len(images)
+    issame_matrix = labels.unsqueeze(0) == labels.unsqueeze(1)
+
+    # Get all possible pairs except those in the diagonal
+    same_pairs = np.argwhere(issame_matrix == True)
+    diff_pairs = np.argwhere(issame_matrix == False)
+    not_on_diag = same_pairs[0] != same_pairs[1]
+    same_pairs = [same_pairs[0][not_on_diag], same_pairs[1][not_on_diag]]
+
+    indices = np.arange(len(same_pairs[0]))
+    np.random.seed(0)
+    np.random.shuffle(indices)
+    # Get 3000 random pairs
+    indices = indices[:num_pairs]
+    same_pairs = [same_pairs[0][indices], same_pairs[1][indices]]
+
+    indices = np.arange(len(diff_pairs[0]))
+    np.random.seed(0)
+    np.random.shuffle(indices)
+    # Get 3000 random pairs
+    indices = indices[:num_pairs]
+    diff_pairs = [diff_pairs[0][indices], diff_pairs[1][indices]]
+
+    pairs_list = []
+    issame_list = []
+    for i in range(num_pairs):
+        issame_list.append(True)
+        pairs_list.extend([same_pairs[0][i].item(), same_pairs[1][i].item()])
+        issame_list.append(False)
+        pairs_list.extend([diff_pairs[0][i].item(), diff_pairs[1][i].item()])
+
+    for task in range(num_tasks):
+        embeddings = np.array([image_embeddings[task][pairs_list[i]].numpy() for i in range(len(pairs_list))])
+        tpr, fpr, accuracy, val, val_std, far, fp, fn = evaluate(embeddings, issame_list)
+        print(f'Mean Accuracy: {np.mean(accuracy)}')
