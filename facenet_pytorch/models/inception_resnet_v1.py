@@ -256,6 +256,7 @@ class InceptionResnetV1(nn.Module):
         self.dropout = nn.Dropout(dropout_prob)
         self.last_linear = nn.Linear(1792, 512, bias=False)
         self.last_bn = nn.BatchNorm1d(512)
+        self.last_bn.bias.requires_grad_(False)
 
         if pretrained is not None:
             self.logits = nn.Linear(512, tmp_classes)
