@@ -179,22 +179,6 @@ def main(args):
         train_loader = train_loaders[task]
         val_loader = val_loaders[task]
 
-        #######################################
-        # NOTE: Change number of tasks in the for loop
-        # else:
-        #     if task > 0:
-        #         # Load model
-        #         resnet.load_state_dict(torch.load(f'./trained_models/task{task}_resnet.pth'))
-        #         resnet_old = InceptionResnetV1(classify=True, num_classes=num_classes, dropout_prob=dropout_prob, device=device)
-        #         resnet_old.load_state_dict(torch.load(f'./trained_models/task{task}_resnet.pth'))
-        #         resnet_old.eval()
-        #######################################
-        # if num_tasks > 1:
-        #     train_loader = torch.load(f'./data/train_loader_{task}.pth')
-        #     val_loader = torch.load(f'./data/val_loader_{task}.pth')
-        # else:
-        #     train_loader = torch.load(f'./data/train_loader.pth')
-        #     val_loader = torch.load(f'./data/val_loader.pth')
         print('=' * 10)
         print(f'Task {task + 1} starts')
 

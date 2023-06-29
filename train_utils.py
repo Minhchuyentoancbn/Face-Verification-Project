@@ -235,9 +235,6 @@ def pass_epoch(
         optimizer.zero_grad()
         if distill_loss is not None:
             distill_loss.backward(retain_graph=True)
-            # Zero grad for model.logits layer, which is a Linear layer
-            for param in model.logits.parameters():
-                param.grad.data *= 0.0
 
         loss_batch.backward()
         optimizer.step()
