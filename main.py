@@ -236,10 +236,10 @@ def main(args):
             torch.save(resnet.state_dict(), f'./trained_models/resnet.pth')
 
         for tid in range(num_tasks):
-            if args.ns:
-                old_cl = classes[(tid - 1) * num_classes_per_task : tid * num_classes_per_task]
-            else:
-                old_cl = classes[:tid * num_classes_per_task]
+            # if args.ns:
+            #     old_cl = classes[(tid - 1) * num_classes_per_task : tid * num_classes_per_task]
+            # else:
+            old_cl = classes[:tid * num_classes_per_task]
             loss, task_metrics = validate(
                 resnet, loss_fn, val_loaders[tid], metrics, 
                 device=device, args=args, optimizer=optimizer, 
