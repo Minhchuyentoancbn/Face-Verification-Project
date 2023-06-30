@@ -214,20 +214,20 @@ def main(args):
             # Evaluate on LFW
             if (epoch + 1) % args.eval_cycle == 0:
                 print('Validate on LFW')
-                # lfw_accuracy, lfw_val, lfw_far = evaluate_lfw(resnet)
+                lfw_accuracy, lfw_val, lfw_far = evaluate_lfw(resnet)
 
         writer.close()
         print(f'Task {task + 1} / {num_tasks} finished.')
         print('=' * 20)
 
-        # # Evaluate on LFW
-        # if epochs % args.eval_cycle != 0:
-        #     print('Validate on LFW')
-        #     lfw_accuracy, lfw_val, lfw_far = evaluate_lfw(resnet)
+        # Evaluate on LFW
+        if epochs % args.eval_cycle != 0:
+            print('Validate on LFW')
+            lfw_accuracy, lfw_val, lfw_far = evaluate_lfw(resnet)
 
-        # tasks_lfw_accuracy[task] = lfw_accuracy
-        # tasks_lfw_val[task] = lfw_val
-        # tasks_lfw_far[task] = lfw_far
+        tasks_lfw_accuracy[task] = lfw_accuracy
+        tasks_lfw_val[task] = lfw_val
+        tasks_lfw_far[task] = lfw_far
 
         # Save model
         if num_tasks > 1:
@@ -236,9 +236,6 @@ def main(args):
             torch.save(resnet.state_dict(), f'./trained_models/resnet.pth')
 
         for tid in range(num_tasks):
-            # if args.ns:
-            #     old_cl = classes[(tid - 1) * num_classes_per_task : tid * num_classes_per_task]
-            # else:
             old_cl = classes[:tid * num_classes_per_task]
             loss, task_metrics = validate(
                 resnet, loss_fn, val_loaders[tid], metrics, 
