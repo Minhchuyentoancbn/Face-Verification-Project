@@ -80,14 +80,14 @@ options:
 __Baseline__
 
 ```
-python main.py --num_tasks 1 --batch_size 128 --epochs 3 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 1
+python main.py --num_tasks 1 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 1
 ```
 
 
  __Baseline + Label smoothing__
 
 ```
-python main.py --num_tasks 1 --batch_size 128 --epochs 3 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 1 --smooth 1e-3
+python main.py --num_tasks 1 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 1 --smooth 1e-3
 ```
 
 
@@ -106,13 +106,6 @@ python main.py --num_tasks 1 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.
 
 
 ### Training 5 tasks
-
-
-__Baseline__
-
-```
-python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 3 --finetune False 
-```
 
 
 __Finetune__
@@ -187,7 +180,7 @@ __Basic + NS + CR results of final task for different values of Beta__
 ![LFW - Training 5 tasks basic ns cr](results/basic_ns_cr.png)
 
 
-__Aliblation study__
+__Ablation study__
 
 
 | Method | Accuracy | VAL |
@@ -197,7 +190,7 @@ __Aliblation study__
 | Basic + CR | __0.95__| 0.55167 |
 | Basic + NS + CR | 0.94767 | __0.65800__ |
 
-![LFW - Training 5 tasks aliblation](results/aliblation.png)
+![LFW - Training 5 tasks ablation](results/aliblation.png)
 
 
 __Main Results__
