@@ -339,7 +339,11 @@ def validate_first_task(
         issame_list.append(False)
         pairs_list.extend([diff_pairs[0][i].item(), diff_pairs[1][i].item()])
 
+    tasks_accuracy = np.zeros(num_tasks)
     for task in range(num_tasks):
         embeddings = np.array([image_embeddings[task][pairs_list[i]].numpy() for i in range(len(pairs_list))])
         tpr, fpr, accuracy, val, val_std, far, fp, fn = evaluate(embeddings, issame_list)
         print(f'Mean Accuracy: {np.mean(accuracy)}')
+        tasks_accuracy[task] = np.mean(accuracy)
+
+    return tasks_accuracy
