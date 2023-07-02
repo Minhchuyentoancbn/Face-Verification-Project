@@ -13,8 +13,8 @@ LFW_PAIRS_PATH = 'data/lfw/pairs.txt'
 LOG_DIR = 'runs/'
 
 
-casia_cropped_path = os.path.join(DATA_PATH, 'CASIA-WebFace-cropped/')
-# casia_cropped_path = '/kaggle/input/casia-webface-cropped-with-mtcnn/CASIA-WebFace-cropped'
+# casia_cropped_path = os.path.join(DATA_PATH, 'CASIA-WebFace-cropped/')
+casia_cropped_path = '/kaggle/input/casia-webface-cropped-with-mtcnn/CASIA-WebFace-cropped'
 # casia_cropped_path = '/kaggle/input/casia-webface-mtcnn-v2/CASIA-WebFace-cropped'
 # casia_cropped_path = '/kaggle/input/casia-webface-v3/CASIA-WebFace-cropped'
 
