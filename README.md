@@ -120,84 +120,22 @@ python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.
 __Basic + NS__
   
 ```
-python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 3 --distill True --lambda_old 0.1 --T 2 --ns True --K 1500
+python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 3 --distill True --lambda_old 0.1 --T 2 --ns True --K 1000
 ```
 
 
 __Basic + CR__
   
 ```
-python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 3 --distill True --lambda_old 0.1 --T 2 --cr True --beta0 5e-3
+python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 3 --distill True --lambda_old 0.1 --T 2 --cr True --beta0 1e-2
 ```
 
 
 __Basic + NS + CR__
 
 ```
-python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 3 --distill True --lambda_old 0.1 --T 2 --ns True --K 1500 --cr True --beta0 5e-3
+python main.py --num_tasks 5 --batch_size 128 --epochs 24 --lr 0.1 --momentum 0.9 --weight_decay 3e-4 --eval_cycle 3 --distill True --lambda_old 0.1 --T 2 --ns True --K 1000 --cr True --beta0 4e-3
 ```
-
-
-## Experimental Results
-
-### Training 1 task - LFW
-
-| Method | Accuracy | VAL | FAR |
-| --- | --- | --- | --- |
-| Baseline | 0.96816 | 0.75500 | 0.00133 |
-| Baseline + Label smoothing | 0.97316 | 0.82600 | 0.00133 |
-| Baseline + Triplet Loss + Center Loss | __0.97483__ | 0.77700 | __0.00100__ |
-| Baseline + Label smoothing + Triplet Loss + Center Loss | 0.97349 | __0.85300__ | 0.00133 |s
-
-### Traning 5 tasks
-
-__Basic + NS results of final task for different values of K__
-
-
-| K | 50 | 100 | 200 | 500 | 700 | 1000 | 1200 | 1500 | Full |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Accuracy | 0.92199 | 0.92950 | 0.93883 | 0.93666 | 0.93366 | 0.92449 | 0.93200 | __0.94416__ | 0.93966 |
-| VAL | 0.471 | 0.581 | 0.565 | 0.522 | 0.600 | 0.434 | 0.619 | __0.653__ | 0.584 |
-
-![LFW - Training 5 tasks basic ns](results/basic_ns.png)
-
-
-__Basic + NS + CR results of final task for different values of Beta__
-
-
-| Beta | 0 | 2e-3 | 5e-3 | 10e-3 | 50e-3 |
-| --- | --- | --- | --- | --- | --- |
-| Accuracy | 0.94416 | 0.94416 | __0.94766__ | 0.93400 | 0.93733 |
-| VAL | 0.653 | 0.653 | __0.658__ | 0.552 | 0.485 |
-
-![LFW - Training 5 tasks basic ns cr](results/basic_ns_cr.png)
-
-
-__Ablation study__
-
-
-| Method | Accuracy | VAL |
-| --- | --- | --- |
-| Basic | 0.94917 | 0.59333 |
-| Basic + NS | 0.94417 | 0.65367 |
-| Basic + CR | __0.95__| 0.55167 |
-| Basic + NS + CR | 0.94767 | __0.65800__ |
-
-![LFW - Training 5 tasks ablation](results/aliblation.png)
-
-
-__Main Results__
-
-
-| Method | Accuracy | VAL |
-| --- | --- | --- |
-| Baseline | 0.93567 | 0.48233 |
-| Finetune | 0.93733 | 0.51433 |
-| LWF | __0.94917__ | 0.59333 |
-| Ours | 0.94767 | __0.65800__ |
-
-
-![Comparision](results/main_results.png)
 
 
 ## Run Server
